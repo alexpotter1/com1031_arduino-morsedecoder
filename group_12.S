@@ -5,6 +5,8 @@
 #define __SFR_OFFSET 0
 #include <avr/io.h>
 
+#include "displayCharacterCodes.S"
+
 	
 ;;; user code starts from here, as init.S ends with jmp main:
 
@@ -14,17 +16,10 @@ main:
 
 
 test_display:
-	push r16
+	push r21
 
-	ldi r16, 0xFE
-	out DDRD, r16
-	com r16
+	ldi r21, DISP_ALL
+	out DDRD, r21
 
-	out PORTD, r16
-
-	pop r16
-
+	pop r21
 	ret
-	
-
-
