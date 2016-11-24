@@ -1,5 +1,5 @@
 # change XX here to your group letter pair.
-PRG = group_XX
+PRG = group_12
 
 # add to this line the names of other source code files that contain code for your project
 # but replace suffix .S with .o, eg display.S would become display.o as in

@@ -10,8 +10,21 @@
 
 	.global main 		; declaring main global, so it can be used in other files
 main:
-	nop
-	;; start adding your code here!
+	call test_display
+
+
+test_display:
+	push r16
+
+	ldi r16, 0xFE
+	out DDRD, r16
+	com r16
+
+	out PORTD, r16
+
+	pop r16
+
+	ret
 	
 
 
