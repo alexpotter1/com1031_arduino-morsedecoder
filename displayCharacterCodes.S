@@ -1,5 +1,5 @@
 ;;; Group 12 COM1031 Coursework
-;;; Alex Potter, Adrien Royer, Matt Sweeting and Alfin Jose
+;;; Alex Potter, Adrien Royer, Nick Sweeting and Alfin Jose
 
 #define __SFR_OFFSET 0
 #include <avr/io.h>
