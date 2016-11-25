@@ -20,6 +20,8 @@ test_display:
 
 	ldi r21, DISP_ALL
 	out DDRD, r21
+	ldi r21, DISP_DOT
+	out DDRC, r21
 
 	pop r21
 	ret
