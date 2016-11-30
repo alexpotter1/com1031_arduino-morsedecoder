@@ -10,7 +10,7 @@
 
 ;;; user code starts from here, as init.S ends with jmp main:
 
-BUTTON = 0			; Button on Arduino pin 8 (PORTB pin 0)
+BUTTON = 0		; Button on Arduino pin 8 (PORTB pin 0)
 
 .global main 		; declaring main global, so it can be used in other files
 
@@ -103,4 +103,6 @@ reset_timer1:
 	sts TCNT1H r17		;high bit
 	sts TCNT1L r17		;low bit
 
-	pull r17
+	pop r17
+
+	ret
