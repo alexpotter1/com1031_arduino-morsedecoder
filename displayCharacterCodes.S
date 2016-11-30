@@ -36,5 +36,5 @@
 	DISP_CHAR_B = ~(_BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_C = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
 	DISP_CHAR_D = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_F = ~(_BV(DISP_A) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
