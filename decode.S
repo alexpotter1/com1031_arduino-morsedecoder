@@ -14,8 +14,8 @@
   ;;; Hence timer ticks per second = frequency / (size of timer (size of high byte for timer1) * 1024)
   TICK_COUNT = CPU_FREQUENCY / (256*1024)
   
-  ;;; 200ms is equal to 12.21 timer ticks
+  ;;; 200ms is equal to 12.21 timer ticks (0.2 seconds worth of ticks)
   ;;; Anything longer is a dash, anything shorter is a dot
-  MORSE_SIGNAL_BOUNDARY = 12
+  MORSE_SIGNAL_BOUNDARY = 2 * TICK_COUNT / 10
   
   

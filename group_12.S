@@ -6,6 +6,7 @@
 #include <avr/io.h>
 
 #include "displayCharacterCodes.S"
+#include "decode.S"
 
 
 ;;; user code starts from here, as init.S ends with jmp main:
@@ -81,7 +82,11 @@ timer1_cpt_isr:
 	andi r17, ~(_BV(ICES1))
 
 	rjmp invertEdgeDetection
-
+	
+pressed:
+	
+	ori r17, _BV(ICES1)	; expects next button change to be rising edge
+	
 invertEdgeDetection:
 	sts TCCR1B, r17
 
@@ -92,6 +97,42 @@ end_timer1_cpt_isr:
 	pop r8
 
 	reti
+
+released:
+
+	push r16
+	
+	inc r29			; increment the button press counter
+	
+	tst r22 		; tests whether an overflow occurs
+	
+	brne long_press		; if overflow occurs: always a long press
+
+	ldi r16, MORSE_SIGNAL_BOUNDARY ; testing whether dot or dash
+	cp r8,r16
+	brcs short		; if dot (short press) jump to short
+	
+	
+long_press:
+
+	;; here store that the press was a dash
+	rol r28
+	inc r28
+
+	ldi r27, DISP_CHAR_F
+	out PORTD, r27
+
+	rjmp interrupt_loop
+
+short:
+
+	;; here store that the press was a dot
+	rol r28
+
+	ldi r27, DISP_CHAR_E
+	out PORTD, r27
+
+	rjmp interrupt_loop
 
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
@@ -105,7 +146,6 @@ setup_timer1:
 	;;; Store zero in timer1 low byte
 	clr r19
 	sts OCR1AL, r19
-
 	pop r19
 	ret
 
@@ -137,10 +177,15 @@ reset_timer1:
 
 	push r17
 
-	clr r17			;setting timer back to 0
-	sts TCNT1H, r17		;high bit
-	sts TCNT1L, r17		;low bit
+	clr r17			; setting timer back to 0
+	sts TCNT1H, r17		; high bit
+	sts TCNT1L, r17		; low bit
+	clr r29			; clears the button press counters
+	clr r28
 
 	pop r17
 
 	ret
+
+
+	
