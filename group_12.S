@@ -36,7 +36,8 @@ main:
 	ldi r18, _BV(OCIE1A) | _BV(ICIE1)
 	sts TIMSK1, r18
 
-	call reset_timer1
+	call setup_timer1	;setting the timer reset limit, and resetting
+	call reset_timer1	;it back to 0
 
 	;;; Enable noise-cancelling and set prescaler properly
 	ldi r18, _BV(ICNC1) | _BV(CS12) | _BV(WGM12) | _BV(CS10)
@@ -55,7 +56,7 @@ timer1_compa_isr:
 	reti
 
 ;;; Call this when a morse signal is received, to reset the timeout
-reset_timer1:
+setup_timer1:
 	push r19
 
 	;;; Set the timer1 high byte to the inter-signal timeout (400ms)
@@ -93,3 +94,13 @@ ready_display:
 
 	pop r21
 	ret
+
+reset_timer1:
+
+	push r17
+
+	clr r17			;setting timer back to 0
+	sts TCNT1H r17		;high bit
+	sts TCNT1L r17		;low bit
+
+	pull r17
