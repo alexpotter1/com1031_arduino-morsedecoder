@@ -55,6 +55,44 @@ timer1_compa_isr:
 	rjmp ready_display
 	reti
 
+.global timer1_cpt_isr
+; Handle button input event
+timer1_cpt_isr:
+	; Save SREG
+	push r8
+	in r8, SREG
+	push r8
+
+	; Save input capture timer to r8
+	lds r8, ICR1L
+	lds r8, ICR1H
+
+	rcall reset_timer1
+
+	; Check for rising or falling edge
+	push r17
+	lds r17, TCCR1B
+	; skip next if rising edge (ICES=1 for rising, ICES=0 for falling)
+	sbrs r17, ICES1
+	; skip pressed if button is released
+	rjmp pressed
+	rcall released
+
+	andi r17, ~(_BV(ICES1))
+
+	rjmp invertEdgeDetection
+
+invertEdgeDetection:
+	sts TCCR1B, r17
+
+end_timer1_cpt_isr:
+	pop r17
+	pop r8
+	out SREG, r8
+	pop r8
+
+	reti
+
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
 	push r19
@@ -100,8 +138,8 @@ reset_timer1:
 	push r17
 
 	clr r17			;setting timer back to 0
-	sts TCNT1H r17		;high bit
-	sts TCNT1L r17		;low bit
+	sts TCNT1H, r17		;high bit
+	sts TCNT1L, r17		;low bit
 
 	pop r17
 
