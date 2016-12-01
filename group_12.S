@@ -164,7 +164,7 @@ long_press:
 	;; here store that the press was a dash
 	rol r28
 	inc r28
-	; display F for now
+	; display T for now
 	ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
 	rjmp 1f

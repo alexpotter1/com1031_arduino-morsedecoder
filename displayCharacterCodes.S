@@ -58,3 +58,18 @@
 	DISP_CHAR_X = ~( _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
 	DISP_CHAR_Y = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_Z = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
+
+;;; Bit Patterns for Each character to button press pattern
+
+	;; Two presses long
+	
+	BIT_PATT_A = 0x1
+	BIT_PATT_N = 0x2
+	BIT_PATT_I = 0
+	BIT_PATT_M = 0x3
+
+	;; Three presses long
+
+	;; Four presses long
+
+	;; Five presses long
