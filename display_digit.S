@@ -11,21 +11,18 @@ displayDigit:
 	push r30
 	push r31
 
-	push r28
-	push r29
-
-	ldi r28, lo8(characterBitpatterns)
-	ldi r29, hi8(characterBitpatterns)
-
-	add r28, r23
-	brcc loadBitPatternTableToMemory
-	inc r28
-
 	;;; r21 contains a reference (between 0 and 15) of the digit we want to display
 	andi r21, 0xF 	; make sure we cannot display anything outside of the defined range
 
 	ldi r30, lo8(characterCodes)	; put table address into the Z pointer
 	ldi r31, hi8(characterCodes)
+
+	ldi r30, lo8(characterBitpatterns)
+	ldi r31, hi8(characterBitpatterns)
+
+	add r30, r23
+	brcc loadBitPatternTableToMemory
+	inc r31
 
 	add r30, r21 	; Go to the offset contained in r21
 	brcc loadTableToMemory	; if no overflow, load table from Z pointer
@@ -40,10 +37,8 @@ loadTableToMemory:
 	ret
 
 loadBitPatternTableToMemory:
-	lpm r23, Y	; Load r23 with contents of Y pointer
-
-	pop r29
-	pop r28
+	lpm r23, Z	; Load r23 with contents of Z
+	
 	ret
 
 characterCodes:
