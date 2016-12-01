@@ -14,7 +14,7 @@
 	DISP_G = 6
 	DISP_H = 0		; there isn't really a segment H but this is the DP2 dot (on Arduino pin A0)
 
-	
+
 	;;; Turn on all parts of display
 	DISP_ALL = _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G)
 	DISP_DOT = _BV(DISP_H)
@@ -38,7 +38,7 @@
 	DISP_CHAR_D = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_G))
 	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_F = ~(_BV(DISP_A) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP-CHAR_G = ~(_BV(DISP_A) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_G = ~(_BV(DISP_A) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_H = ~(_BV(DISP_C) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_I = ~(_BV(DISP_B) | _BV(DISP_C))
 	DISP_CHAR_J = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F))
