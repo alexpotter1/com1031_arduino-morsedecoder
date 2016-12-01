@@ -92,6 +92,19 @@ timer1_cpt_isr:
 	lds r8, ICR1L
 	lds r8, ICR1H
 
+	;; Debounce Button
+
+	push r17
+
+	mov r17, r22
+	or r17, r8
+
+	breq debounce
+
+	pop r17
+	
+	rcall reset_timer1
+	
 	; Check for rising or falling edge
 	push r17
 	lds r17, TCCR1B
@@ -121,6 +134,15 @@ end_timer1_cpt_isr:
 	pop r8
 	reti
 
+debounce:
+
+	pop r17
+	pop r8
+	out SREG, r8
+	pop r8
+
+	reti
+	
 released:
 
 	push r16
@@ -167,7 +189,6 @@ short_press:
 	ret
 
 	
-
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
 	push r19
