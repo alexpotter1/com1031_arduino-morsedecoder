@@ -1,0 +1,803 @@
+
+group_12.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .data         00000000  00800100  00000276  000002ea  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  1 .text         00000276  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .stab         00000c48  00000000  00000000  000002ec  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  3 .stabstr      00000073  00000000  00000000  00000f34  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <reset_v>:
+   0:	1c c0       	rjmp	.+56     	; 0x3a <init>
+	...
+
+00000028 <timer1_cpt_v>:
+  28:	0c 94 4d 00 	jmp	0x9a	; 0x9a <timer1_cpt_isr>
+
+0000002c <timer1_compa_v>:
+  2c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <timer1_compa_isr>
+  30:	00 00       	nop
+	...
+
+00000034 <timer1_ovr_v>:
+  34:	0c 94 1c 00 	jmp	0x38	; 0x38 <timer1_ovr_isr>
+
+00000038 <timer1_ovr_isr>:
+  38:	18 95       	reti
+
+0000003a <init>:
+  3a:	08 e0       	ldi	r16, 0x08	; 8
+  3c:	0e bf       	out	0x3e, r16	; 62
+  3e:	0f ef       	ldi	r16, 0xFF	; 255
+  40:	0d bf       	out	0x3d, r16	; 61
+  42:	00 e0       	ldi	r16, 0x00	; 0
+  44:	00 93 c1 00 	sts	0x00C1, r16
+  48:	0c 94 26 00 	jmp	0x4c	; 0x4c <__ctors_end>
+
+0000004c <__ctors_end>:
+
+.global main 		; declaring main global, so it can be used in other files
+
+main:
+
+	call test_display
+  4c:	0e 94 fc 00 	call	0x1f8	; 0x1f8 <test_display>
+
+	;;; Switch on button as input (not pressed = 1, pressed = 0)
+	cbi DDRB, BUTTON
+  50:	20 98       	cbi	0x04, 0	; 4
+	sbi PORTB, BUTTON
+  52:	28 9a       	sbi	0x05, 0	; 5
+	
+	;;; Set output of 7 segment
+	ldi r16, DISP_ALL
+  54:	0e ef       	ldi	r16, 0xFE	; 254
+	out DDRD, r16
+  56:	0a b9       	out	0x0a, r16	; 10
+
+	ldi r16, DISP_DOT
+  58:	01 e0       	ldi	r16, 0x01	; 1
+	out DDRC, r16
+  5a:	07 b9       	out	0x07, r16	; 7
+
+	;;; Initialise timer1 control register
+	;;; Also enable input capture, overflow interrupts for timer1
+	clr r18
+  5c:	22 27       	eor	r18, r18
+	sts TCCR1A, r18
+  5e:	20 93 80 00 	sts	0x0080, r18
+	ldi r18, _BV(OCIE1A) | _BV(ICIE1)
+  62:	22 e2       	ldi	r18, 0x22	; 34
+	sts TIMSK1, r18
+  64:	20 93 6f 00 	sts	0x006F, r18
+
+	call setup_timer1	;setting the timer reset limit, and resetting
+  68:	0e 94 f3 00 	call	0x1e6	; 0x1e6 <setup_timer1>
+
+	;;; Enable noise-cancelling and set prescaler properly
+	ldi r18, _BV(ICNC1) | _BV(CS12) | _BV(WGM12) | _BV(CS10)
+  6c:	2d e8       	ldi	r18, 0x8D	; 141
+	sts TCCR1B, r18
+  6e:	20 93 81 00 	sts	0x0081, r18
+	
+	; Clear timer1 overflow register, just in case
+	clr r22
+  72:	66 27       	eor	r22, r22
+	clr r27
+  74:	bb 27       	eor	r27, r27
+	clr r28
+  76:	cc 27       	eor	r28, r28
+	clr r29
+  78:	dd 27       	eor	r29, r29
+	; Global Interrupt Enable
+	sei
+  7a:	78 94       	sei
+
+0000007c <interrupt_loop>:
+
+;;; Wait for interrupts
+interrupt_loop: rjmp interrupt_loop
+  7c:	ff cf       	rjmp	.-2      	; 0x7c <interrupt_loop>
+
+0000007e <timer1_compa_isr>:
+
+.global timer1_compa_isr
+
+;;; Timer1 has reached OCR1AH
+timer1_compa_isr:
+	push r16
+  7e:	0f 93       	push	r16
+	in r16, SREG
+  80:	0f b7       	in	r16, 0x3f	; 63
+	push r16
+  82:	0f 93       	push	r16
+	
+	lds r16, TCCR1B
+  84:	00 91 81 00 	lds	r16, 0x0081
+	; Are we waiting for a button release?
+	sbrs r16, ICES1
+  88:	06 ff       	sbrs	r16, 6
+	rjmp wait_for_press
+  8a:	02 c0       	rjmp	.+4      	; 0x90 <wait_for_press>
+	
+	;;; Button is being held down, so set timer overflow register (r22)
+	ser r22
+  8c:	6f ef       	ldi	r22, 0xFF	; 255
+	
+	;;; Cleanup and end timer1_compa_isr
+	rjmp 1f
+  8e:	01 c0       	rjmp	.+2      	; 0x92 <wait_for_press+0x2>
+
+00000090 <wait_for_press>:
+	
+wait_for_press:
+	rcall ready_display
+  90:	ba d0       	rcall	.+372    	; 0x206 <ready_display>
+	
+1: pop r16
+  92:	0f 91       	pop	r16
+	out SREG, r16
+  94:	0f bf       	out	0x3f, r16	; 63
+	pop r16
+  96:	0f 91       	pop	r16
+	
+	reti
+  98:	18 95       	reti
+
+0000009a <timer1_cpt_isr>:
+
+.global timer1_cpt_isr
+; Handle button input event
+timer1_cpt_isr:
+	; Save SREG
+	push r8
+  9a:	8f 92       	push	r8
+	in r8, SREG
+  9c:	8f b6       	in	r8, 0x3f	; 63
+	push r8
+  9e:	8f 92       	push	r8
+
+	; Save input capture timer to r8
+	lds r8, ICR1L
+  a0:	80 90 86 00 	lds	r8, 0x0086
+	lds r8, ICR1H
+  a4:	80 90 87 00 	lds	r8, 0x0087
+
+	;; Debounce Button
+
+	push r17
+  a8:	1f 93       	push	r17
+
+	mov r17, r22
+  aa:	16 2f       	mov	r17, r22
+	or r17, r8
+  ac:	18 29       	or	r17, r8
+
+	breq debounce
+  ae:	99 f0       	breq	.+38     	; 0xd6 <debounce>
+
+	pop r17
+  b0:	1f 91       	pop	r17
+	
+	rcall reset_timer1
+  b2:	b0 d0       	rcall	.+352    	; 0x214 <reset_timer1>
+	
+	; Check for rising or falling edge
+	push r17
+  b4:	1f 93       	push	r17
+	lds r17, TCCR1B
+  b6:	10 91 81 00 	lds	r17, 0x0081
+	; skip next if rising edge (ICES=1 for rising, ICES=0 for falling)
+	sbrs r17, ICES1
+  ba:	16 ff       	sbrs	r17, 6
+	; skip pressed if button is released
+	rjmp pressed
+  bc:	03 c0       	rjmp	.+6      	; 0xc4 <pressed>
+	rcall released
+  be:	10 d0       	rcall	.+32     	; 0xe0 <released>
+	
+
+	andi r17, ~(_BV(ICES1))
+  c0:	1f 7b       	andi	r17, 0xBF	; 191
+
+	rjmp invertEdgeDetection
+  c2:	02 c0       	rjmp	.+4      	; 0xc8 <invertEdgeDetection>
+
+000000c4 <pressed>:
+	
+pressed:
+	
+	ori r17, _BV(ICES1)	; expects next button change to be rising edge
+  c4:	10 64       	ori	r17, 0x40	; 64
+	rcall reset_timer1
+  c6:	a6 d0       	rcall	.+332    	; 0x214 <reset_timer1>
+
+000000c8 <invertEdgeDetection>:
+	
+invertEdgeDetection:
+	sts TCCR1B, r17
+  c8:	10 93 81 00 	sts	0x0081, r17
+
+000000cc <end_timer1_cpt_isr>:
+
+end_timer1_cpt_isr:
+	pop r17
+  cc:	1f 91       	pop	r17
+	pop r8
+  ce:	8f 90       	pop	r8
+	out SREG, r8
+  d0:	8f be       	out	0x3f, r8	; 63
+	pop r8
+  d2:	8f 90       	pop	r8
+	reti
+  d4:	18 95       	reti
+
+000000d6 <debounce>:
+
+debounce:
+
+	pop r17
+  d6:	1f 91       	pop	r17
+	pop r8
+  d8:	8f 90       	pop	r8
+	out SREG, r8
+  da:	8f be       	out	0x3f, r8	; 63
+	pop r8
+  dc:	8f 90       	pop	r8
+
+	reti
+  de:	18 95       	reti
+
+000000e0 <released>:
+	
+released:
+
+	push r16
+  e0:	0f 93       	push	r16
+	push r27
+  e2:	bf 93       	push	r27
+	
+			; increment the button press counter
+	
+	; Is the timer1 overflow register zero (or minus)?
+	tst r22
+  e4:	66 23       	and	r22, r22
+	; If it isn't, it has been set, so do a long press
+	brne long_press
+  e6:	49 f4       	brne	.+18     	; 0xfa <long_press>
+
+	ldi r16, MORSE_SIGNAL_BOUNDARY ; testing whether dot or dash
+  e8:	0c e0       	ldi	r16, 0x0C	; 12
+	cp r8,r16
+  ea:	80 16       	cp	r8, r16
+	brcs short_press		; if dot (short press) jump to short_press, was brcs btu i changed it 
+  ec:	00 f0       	brcs	.+0      	; 0xee <short_press>
+
+000000ee <short_press>:
+	
+short_press:
+	
+	;; here store that the press was a dash
+	
+	rol r28
+  ee:	cc 1f       	adc	r28, r28
+	inc r28
+  f0:	c3 95       	inc	r28
+	inc r29
+  f2:	d3 95       	inc	r29
+				; display T for now
+				;ldi r27, DISP_CHAR_T
+				; Set pins, reset the timer and return to ISR
+	call run_through_the_chars
+  f4:	0e 94 82 00 	call	0x104	; 0x104 <run_through_the_chars>
+	rjmp 1f
+  f8:	6e c0       	rjmp	.+220    	; 0x1d6 <disp_error_runthoughthechars+0x4>
+
+000000fa <long_press>:
+	
+
+long_press:
+	
+	;; here store that the press was a dot
+	rol r28
+  fa:	cc 1f       	adc	r28, r28
+	inc r29
+  fc:	d3 95       	inc	r29
+	
+				; Display E for now
+	call run_through_the_chars
+  fe:	0e 94 82 00 	call	0x104	; 0x104 <run_through_the_chars>
+	rjmp 1f
+ 102:	69 c0       	rjmp	.+210    	; 0x1d6 <disp_error_runthoughthechars+0x4>
+
+00000104 <run_through_the_chars>:
+
+				;ldi r27, DISP_CHAR_E
+run_through_the_chars:
+	clr r25
+ 104:	99 27       	eor	r25, r25
+	
+	cp r28, r25
+ 106:	c9 17       	cp	r28, r25
+	breq disp_T_O_0
+ 108:	81 f0       	breq	.+32     	; 0x12a <disp_T_O_0>
+	
+	inc r25
+ 10a:	93 95       	inc	r25
+	cp r28, r25
+ 10c:	c9 17       	cp	r28, r25
+	breq disp_E_N_9
+ 10e:	b1 f0       	breq	.+44     	; 0x13c <disp_E_N_9>
+	
+	inc r25
+ 110:	93 95       	inc	r25
+	cp r28, r25
+ 112:	c9 17       	cp	r28, r25
+	breq disp_A_K_Q
+ 114:	e1 f0       	breq	.+56     	; 0x14e <disp_A_K_Q>
+	
+        inc r25
+ 116:	93 95       	inc	r25
+	cp r28, r25
+ 118:	c9 17       	cp	r28, r25
+	breq disp_I_D_Z_8
+ 11a:	31 f1       	breq	.+76     	; 0x168 <disp_I_D_Z_8>
+	
+        inc r25
+ 11c:	93 95       	inc	r25
+	cp r28, r25
+ 11e:	c9 17       	cp	r28, r25
+	breq disp_W_Y
+ 120:	81 f1       	breq	.+96     	; 0x182 <disp_W_Y>
+	
+        inc r25
+ 122:	93 95       	inc	r25
+	Cp r28, r25
+ 124:	c9 17       	cp	r28, r25
+	breq disp_R_C
+ 126:	79 f1       	breq	.+94     	; 0x186 <disp_R_C>
+	
+	rjmp disp_error_runthoughthechars
+ 128:	54 c0       	rjmp	.+168    	; 0x1d2 <disp_error_runthoughthechars>
+
+0000012a <disp_T_O_0>:
+
+disp_T_O_0:
+	
+	cp r29, r24
+ 12a:	d8 17       	cp	r29, r24
+	breq disp_T
+ 12c:	71 f1       	breq	.+92     	; 0x18a <disp_T>
+	
+	ldi r24, 0x03
+ 12e:	83 e0       	ldi	r24, 0x03	; 3
+	cp r29, r24
+ 130:	d8 17       	cp	r29, r24
+	breq disp_O
+ 132:	e9 f1       	breq	.+122    	; 0x1ae <disp_O>
+	
+	ldi r24, 0x07
+ 134:	87 e0       	ldi	r24, 0x07	; 7
+	cp r29, r24
+ 136:	d8 17       	cp	r29, r24
+	breq disp_0
+ 138:	e1 f1       	breq	.+120    	; 0x1b2 <disp_0>
+	
+	rjmp disp_error_TO0
+ 13a:	43 c0       	rjmp	.+134    	; 0x1c2 <disp_error_TO0>
+
+0000013c <disp_E_N_9>:
+	
+disp_E_N_9:
+	
+	cp r29, r24
+ 13c:	d8 17       	cp	r29, r24
+	breq disp_E
+ 13e:	39 f1       	breq	.+78     	; 0x18e <disp_E>
+	
+	ldi r24, 0x03
+ 140:	83 e0       	ldi	r24, 0x03	; 3
+	cp r29, r24
+ 142:	d8 17       	cp	r29, r24
+	breq disp_N
+ 144:	31 f1       	breq	.+76     	; 0x192 <disp_N>
+	
+	ldi r24, 0x1F
+ 146:	8f e1       	ldi	r24, 0x1F	; 31
+	cp r29, r24
+ 148:	d8 17       	cp	r29, r24
+	breq disp_0
+ 14a:	99 f1       	breq	.+102    	; 0x1b2 <disp_0>
+	
+	rjmp disp_error_EN9
+ 14c:	3c c0       	rjmp	.+120    	; 0x1c6 <disp_error_EN9>
+
+0000014e <disp_A_K_Q>:
+	
+disp_A_K_Q:
+	clr r24
+ 14e:	88 27       	eor	r24, r24
+	cp r29, r24
+ 150:	d8 17       	cp	r29, r24
+	breq disp_A
+ 152:	09 f1       	breq	.+66     	; 0x196 <disp_A>
+	
+	ldi r24, 0x03
+ 154:	83 e0       	ldi	r24, 0x03	; 3
+	cp r29, r24
+ 156:	d8 17       	cp	r29, r24
+	breq disp_A
+ 158:	f1 f0       	breq	.+60     	; 0x196 <disp_A>
+	
+	ldi r24, 0x04
+ 15a:	84 e0       	ldi	r24, 0x04	; 4
+	cp r29, r24
+ 15c:	d8 17       	cp	r29, r24
+	breq disp_K
+ 15e:	19 f1       	breq	.+70     	; 0x1a6 <disp_K>
+	
+	ldi r24, 0x07
+ 160:	87 e0       	ldi	r24, 0x07	; 7
+	cp r29, r24
+ 162:	d8 17       	cp	r29, r24
+	breq disp_Q
+ 164:	11 f1       	breq	.+68     	; 0x1aa <disp_Q>
+	
+	rjmp disp_error_AKQ
+ 166:	31 c0       	rjmp	.+98     	; 0x1ca <disp_error_AKQ>
+
+00000168 <disp_I_D_Z_8>:
+	
+disp_I_D_Z_8:
+	
+	ldi r24, 0x03
+ 168:	83 e0       	ldi	r24, 0x03	; 3
+	cp r29, r24
+ 16a:	d8 17       	cp	r29, r24
+	breq disp_I
+ 16c:	b1 f0       	breq	.+44     	; 0x19a <disp_I>
+	
+	ldi r24, 0x04
+ 16e:	84 e0       	ldi	r24, 0x04	; 4
+	cp r29, r24
+ 170:	d8 17       	cp	r29, r24
+	breq disp_D
+ 172:	b9 f0       	breq	.+46     	; 0x1a2 <disp_D>
+	
+	ldi r24, 0x07
+ 174:	87 e0       	ldi	r24, 0x07	; 7
+	cp r29, r24
+ 176:	d8 17       	cp	r29, r24
+	breq disp_Z
+ 178:	f1 f0       	breq	.+60     	; 0x1b6 <disp_Z>
+	
+	ldi r24, 0x1F
+ 17a:	8f e1       	ldi	r24, 0x1F	; 31
+	cp r29,r24
+ 17c:	d8 17       	cp	r29, r24
+	breq disp_8
+ 17e:	e9 f0       	breq	.+58     	; 0x1ba <disp_8>
+	
+	rjmp disp_error_IDZ8
+ 180:	26 c0       	rjmp	.+76     	; 0x1ce <disp_error_IDZ8>
+
+00000182 <disp_W_Y>:
+	
+disp_W_Y:
+	
+	nop
+ 182:	00 00       	nop
+	ret
+ 184:	08 95       	ret
+
+00000186 <disp_R_C>:
+
+disp_R_C:
+	
+	nop
+ 186:	00 00       	nop
+	ret
+ 188:	08 95       	ret
+
+0000018a <disp_T>:
+	
+disp_T:
+	ldi r27, DISP_CHAR_T
+ 18a:	bf e8       	ldi	r27, 0x8F	; 143
+	ret
+ 18c:	08 95       	ret
+
+0000018e <disp_E>:
+disp_E:
+	ldi r27, DISP_CHAR_E
+ 18e:	b7 e0       	ldi	r27, 0x07	; 7
+	ret
+ 190:	08 95       	ret
+
+00000192 <disp_N>:
+disp_N:
+	ldi r27, DISP_CHAR_N
+ 192:	b3 ee       	ldi	r27, 0xE3	; 227
+	ret
+ 194:	08 95       	ret
+
+00000196 <disp_A>:
+disp_A:
+	ldi r27, DISP_CHAR_A
+ 196:	b9 e0       	ldi	r27, 0x09	; 9
+	ret
+ 198:	08 95       	ret
+
+0000019a <disp_I>:
+disp_I:
+	ldi r27, DISP_CHAR_I
+ 19a:	b9 ef       	ldi	r27, 0xF9	; 249
+	ret
+ 19c:	08 95       	ret
+
+0000019e <disp_M>:
+disp_M:
+	ldi r27, DISP_CHAR_M
+ 19e:	b1 e3       	ldi	r27, 0x31	; 49
+	ret
+ 1a0:	08 95       	ret
+
+000001a2 <disp_D>:
+disp_D:
+	ldi r27, DISP_CHAR_D
+ 1a2:	b1 ea       	ldi	r27, 0xA1	; 161
+	ret
+ 1a4:	08 95       	ret
+
+000001a6 <disp_K>:
+disp_K:
+	ldi r27, DISP_CHAR_K
+ 1a6:	b9 e8       	ldi	r27, 0x89	; 137
+	ret
+ 1a8:	08 95       	ret
+
+000001aa <disp_Q>:
+disp_Q:
+	ldi r27, DISP_CHAR_Q
+ 1aa:	b9 e1       	ldi	r27, 0x19	; 25
+	ret
+ 1ac:	08 95       	ret
+
+000001ae <disp_O>:
+disp_O:
+	ldi r27, DISP_CHAR_O
+ 1ae:	b1 e4       	ldi	r27, 0x41	; 65
+	ret
+ 1b0:	08 95       	ret
+
+000001b2 <disp_0>:
+disp_0:
+	ldi r27, DISP_CHAR_0
+ 1b2:	b0 e4       	ldi	r27, 0x40	; 64
+	ret
+ 1b4:	08 95       	ret
+
+000001b6 <disp_Z>:
+disp_Z:
+	ldi r27, DISP_CHAR_Z
+ 1b6:	b9 e2       	ldi	r27, 0x29	; 41
+	ret
+ 1b8:	08 95       	ret
+
+000001ba <disp_8>:
+disp_8:
+	ldi r27, DISP_CHAR_P
+ 1ba:	bd e0       	ldi	r27, 0x0D	; 13
+	ret
+ 1bc:	08 95       	ret
+
+000001be <disp_error>:
+disp_error:	
+	ldi r27, DISP_CHAR_X
+ 1be:	bd ea       	ldi	r27, 0xAD	; 173
+	ret
+ 1c0:	08 95       	ret
+
+000001c2 <disp_error_TO0>:
+disp_error_TO0:
+	ldi r27, DISP_CHAR_O
+ 1c2:	b1 e4       	ldi	r27, 0x41	; 65
+	ret
+ 1c4:	08 95       	ret
+
+000001c6 <disp_error_EN9>:
+disp_error_EN9:
+	ldi r27, DISP_CHAR_N
+ 1c6:	b3 ee       	ldi	r27, 0xE3	; 227
+	ret
+ 1c8:	08 95       	ret
+
+000001ca <disp_error_AKQ>:
+disp_error_AKQ:
+	ldi r27, DISP_CHAR_Q
+ 1ca:	b9 e1       	ldi	r27, 0x19	; 25
+	ret
+ 1cc:	08 95       	ret
+
+000001ce <disp_error_IDZ8>:
+disp_error_IDZ8:
+	ldi r27, DISP_CHAR_I
+ 1ce:	b9 ef       	ldi	r27, 0xF9	; 249
+	ret
+ 1d0:	08 95       	ret
+
+000001d2 <disp_error_runthoughthechars>:
+disp_error_runthoughthechars:	
+	ldi r27, DISP_CHAR_Z
+ 1d2:	b9 e2       	ldi	r27, 0x29	; 41
+	ret
+ 1d4:	08 95       	ret
+	
+	
+1: out PORTD, r27
+ 1d6:	bb b9       	out	0x0b, r27	; 11
+	ldi r27, DISP_DOT
+ 1d8:	b1 e0       	ldi	r27, 0x01	; 1
+	out PORTC, r27
+ 1da:	b8 b9       	out	0x08, r27	; 8
+	pop r27
+ 1dc:	bf 91       	pop	r27
+	pop r16
+ 1de:	0f 91       	pop	r16
+	; reset timer overflow, set timer to zero
+	clr r22
+ 1e0:	66 27       	eor	r22, r22
+	rcall reset_timer1
+ 1e2:	18 d0       	rcall	.+48     	; 0x214 <reset_timer1>
+	; Going back to ISR
+	ret
+ 1e4:	08 95       	ret
+
+000001e6 <setup_timer1>:
+
+	
+;;; Call this when a morse signal is received, to reset the timeout
+setup_timer1:
+	push r19
+ 1e6:	3f 93       	push	r19
+
+	;;; Set the timer1 high byte to the inter-signal timeout (400ms)
+	;;; So load it with 400/16 ~= 25 (in hex)
+	ldi r19, 0x19
+ 1e8:	39 e1       	ldi	r19, 0x19	; 25
+	sts OCR1AH, r19
+ 1ea:	30 93 89 00 	sts	0x0089, r19
+
+	;;; Store zero in timer1 low byte
+	clr r19
+ 1ee:	33 27       	eor	r19, r19
+	sts OCR1AL, r19
+ 1f0:	30 93 88 00 	sts	0x0088, r19
+	pop r19
+ 1f4:	3f 91       	pop	r19
+	ret
+ 1f6:	08 95       	ret
+
+000001f8 <test_display>:
+
+test_display:
+	push r21
+ 1f8:	5f 93       	push	r21
+
+	ldi r21, ~(DISP_ALL)
+ 1fa:	51 e0       	ldi	r21, 0x01	; 1
+	out PORTD, r21
+ 1fc:	5b b9       	out	0x0b, r21	; 11
+	ldi r21, ~(DISP_DOT)
+ 1fe:	5e ef       	ldi	r21, 0xFE	; 254
+	out PORTC, r21
+ 200:	58 b9       	out	0x08, r21	; 8
+
+	pop r21
+ 202:	5f 91       	pop	r21
+	ret
+ 204:	08 95       	ret
+
+00000206 <ready_display>:
+
+ready_display:
+	push r21
+ 206:	5f 93       	push	r21
+
+	;;; Inverse logic
+	;;; Turn everything off except dot
+	ldi r21, DISP_ALL
+ 208:	5e ef       	ldi	r21, 0xFE	; 254
+	out PORTD, r21
+ 20a:	5b b9       	out	0x0b, r21	; 11
+	ldi r21, ~(DISP_DOT)
+ 20c:	5e ef       	ldi	r21, 0xFE	; 254
+	out PORTC, r21
+ 20e:	58 b9       	out	0x08, r21	; 8
+
+	pop r21
+ 210:	5f 91       	pop	r21
+	ret
+ 212:	08 95       	ret
+
+00000214 <reset_timer1>:
+
+reset_timer1:
+
+	push r17
+ 214:	1f 93       	push	r17
+
+	clr r17			; setting timer back to 0
+ 216:	11 27       	eor	r17, r17
+	sts TCNT1H, r17		; high bit
+ 218:	10 93 85 00 	sts	0x0085, r17
+	sts TCNT1L, r17		; low bit
+ 21c:	10 93 84 00 	sts	0x0084, r17
+	clr r29			; clears the button press counters
+ 220:	dd 27       	eor	r29, r29
+	clr r28
+ 222:	cc 27       	eor	r28, r28
+
+	pop r17
+ 224:	1f 91       	pop	r17
+
+
+	ret
+ 226:	08 95       	ret
+
+00000228 <displayDigit>:
+ 228:	ef 93       	push	r30
+ 22a:	ff 93       	push	r31
+ 22c:	5f 70       	andi	r21, 0x0F	; 15
+ 22e:	ee e4       	ldi	r30, 0x4E	; 78
+ 230:	f2 e0       	ldi	r31, 0x02	; 2
+ 232:	e1 e7       	ldi	r30, 0x71	; 113
+ 234:	f2 e0       	ldi	r31, 0x02	; 2
+ 236:	e7 0f       	add	r30, r23
+ 238:	40 f4       	brcc	.+16     	; 0x24a <loadBitPatternTableToMemory>
+ 23a:	f3 95       	inc	r31
+ 23c:	e5 0f       	add	r30, r21
+ 23e:	08 f4       	brcc	.+2      	; 0x242 <loadTableToMemory>
+ 240:	f3 95       	inc	r31
+
+00000242 <loadTableToMemory>:
+ 242:	54 91       	lpm	r21, Z
+ 244:	ff 91       	pop	r31
+ 246:	ef 91       	pop	r30
+ 248:	08 95       	ret
+
+0000024a <loadBitPatternTableToMemory>:
+ 24a:	74 91       	lpm	r23, Z
+ 24c:	08 95       	ret
+
+0000024e <characterCodes>:
+ 24e:	40 f8       	bld	r4, 0
+ 250:	24 30       	cpi	r18, 0x04	; 4
+ 252:	98 12       	cpse	r9, r24
+ 254:	22 78       	andi	r18, 0x82	; 130
+ 256:	00 18       	sub	r0, r0
+ 258:	09 83       	std	Y+1, r16	; 0x01
+ 25a:	47 a1       	ldd	r20, Z+39	; 0x27
+ 25c:	07 0f       	add	r16, r23
+ 25e:	03 8b       	std	Z+19, r16	; 0x13
+ 260:	f9 51       	subi	r31, 0x19	; 25
+ 262:	89 c7       	rjmp	.+3858   	; 0x1176 <_etext+0xf00>
+ 264:	31 e3       	ldi	r19, 0x31	; 49
+ 266:	41 0d       	add	r20, r1
+ 268:	19 af       	std	Y+57, r17	; 0x39
+ 26a:	19 8f       	std	Y+25, r17	; 0x19
+ 26c:	c1 07       	cpc	r28, r17
+ 26e:	ad 91       	ld	r26, X+	; undefined
+ 270:	29 01       	movw	r4, r18
+
+00000271 <characterBitpatterns>:
+ 271:	01 02       	muls	r16, r17
+ 273:	00 03       	mulsu	r16, r16
+	...

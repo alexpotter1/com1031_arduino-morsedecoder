@@ -20,9 +20,9 @@ main:
 	call test_display
 
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
-	;cbi DDRB, BUTTON
+	cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
-
+	
 	;;; Set output of 7 segment
 	ldi r16, DISP_ALL
 	out DDRD, r16
@@ -42,10 +42,12 @@ main:
 	;;; Enable noise-cancelling and set prescaler properly
 	ldi r18, _BV(ICNC1) | _BV(CS12) | _BV(WGM12) | _BV(CS10)
 	sts TCCR1B, r18
-
+	
 	; Clear timer1 overflow register, just in case
 	clr r22
-
+	clr r27
+	clr r28
+	clr r29
 	; Global Interrupt Enable
 	sei
 
@@ -59,33 +61,25 @@ timer1_compa_isr:
 	push r16
 	in r16, SREG
 	push r16
-
+	
 	lds r16, TCCR1B
 	; Are we waiting for a button release?
 	sbrs r16, ICES1
-	rcall wait_for_press
-
+	rjmp wait_for_press
+	
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
-
-	;;; Inter-letter timeout elapsed, so reset signal registers
-	clr r29
-	clr r28
-
+	
 	;;; Cleanup and end timer1_compa_isr
 	rjmp 1f
-
+	
 wait_for_press:
 	rcall ready_display
-
-	cpi r29, 0x02
-	breq two_digit
-	brne one_digit
-
+	
 1: pop r16
 	out SREG, r16
 	pop r16
-
+	
 	reti
 
 .global timer1_cpt_isr
@@ -110,8 +104,9 @@ timer1_cpt_isr:
 	breq debounce
 
 	pop r17
-
-
+	
+	rcall reset_timer1
+	
 	; Check for rising or falling edge
 	push r17
 	lds r17, TCCR1B
@@ -120,17 +115,17 @@ timer1_cpt_isr:
 	; skip pressed if button is released
 	rjmp pressed
 	rcall released
-
+	
 
 	andi r17, ~(_BV(ICES1))
 
 	rjmp invertEdgeDetection
-
+	
 pressed:
-
+	
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
 	rcall reset_timer1
-
+	
 invertEdgeDetection:
 	sts TCCR1B, r17
 
@@ -149,72 +144,217 @@ debounce:
 	pop r8
 
 	reti
-
+	
 released:
 
 	push r16
 	push r27
-
-	inc r29			; increment the button press counter
+	
+			; increment the button press counter
+	
+	; Is the timer1 overflow register zero (or minus)?
+	tst r22
+	; If it isn't, it has been set, so do a long press
+	brne long_press
 
 	ldi r16, MORSE_SIGNAL_BOUNDARY ; testing whether dot or dash
 	cp r8,r16
-	brcs short_press		; if dot (short press) jump to short_press
-	brcc long_press
-
-long_press:
-
+	brcs short_press		; if dot (short press) jump to short_press, was brcs btu i changed it 
+	;; i inverted this during the testing
+	
+short_press:
+	
 	;; here store that the press was a dash
+	
 	rol r28
 	inc r28
+	inc r29
+				; display T for now
+				;ldi r27, DISP_CHAR_T
+				; Set pins, reset the timer and return to ISR
+	call run_through_the_chars
+	rjmp 1f
+	
 
-	rcall ready_display
-	rjmp afterButtonRelease
-
-one_digit:
-	cpi r28, 0x01
-	breq displayT
-	brne displayE
-
-displayT:
-	; display T for now
-	ldi r27, DISP_CHAR_T
-	; Set pins, reset the timer and return to ISR
-	rjmp afterButtonRelease
-
-displayE:
-	; Display E for now
-	ldi r27, DISP_CHAR_E
-	rjmp afterButtonRelease
-
-short_press:
-
+long_press:
+	
 	;; here store that the press was a dot
 	rol r28
-	clr r27
+	inc r29
+	
+				; Display E for now
+	call run_through_the_chars
+	rjmp 1f
 
-	rcall ready_display
-	rjmp afterButtonRelease
+				;ldi r27, DISP_CHAR_E
+run_through_the_chars:
+	clr r25
+	
+	cp r28, r25
+	breq disp_T_O_0
+	
+	inc r25
+	cp r28, r25
+	breq disp_E_N_9
+	
+	inc r25
+	cp r28, r25
+	breq disp_A_K_Q
+	
+        inc r25
+	cp r28, r25
+	breq disp_I_D_Z_8
+	
+        inc r25
+	cp r28, r25
+	breq disp_W_Y
+	
+        inc r25
+	Cp r28, r25
+	breq disp_R_C
+	
+	rjmp disp_error_runthoughthechars
 
-	two_digit:
-	  ldi r16, BIT_PATT_A
-	  cp r16, r28
-	  breq display_A
+disp_T_O_0:
+	cp r29, r24
+	breq disp_T
+	
+	ldi r24, 0x03
+	cp r29, r24
+	breq disp_O
+	
+	ldi r24, 0x07
+	cp r29, r24
+	breq disp_0
+	
+	rjmp disp_error_TO0
+	
+disp_E_N_9:
+	cp r29, r24
+	breq disp_E
+	
+	ldi r24, 0x03
+	cp r29, r24
+	breq disp_N
+	
+	ldi r24, 0x1F
+	cp r29, r24
+	breq disp_0
+	
+	rjmp disp_error_EN9
+	
+disp_A_K_Q:
 
-	  ldi r16, BIT_PATT_N
-	  cp r16, r28
-	  breq display_N
+	clr r24
+	cp r29, r24
+	breq disp_A
+	
+	ldi r24, 0x03
+	cp r29, r24
+	breq disp_A
+	
+	ldi r24, 0x04
+	cp r29, r24
+	breq disp_K
+	
+	ldi r24, 0x07
+	cp r29, r24
+	breq disp_Q
+	
+	rjmp disp_error_AKQ
+	
+disp_I_D_Z_8:
+	
+	ldi r24, 0x03
+	cp r29, r24
+	breq disp_I
+	
+	ldi r24, 0x04
+	cp r29, r24
+	breq disp_D
+	
+	ldi r24, 0x07
+	cp r29, r24
+	breq disp_Z
+	
+	ldi r24, 0x1F
+	cp r29,r24
+	breq disp_8
+	
+	rjmp disp_error_IDZ8
+	
+disp_W_Y:
+	
+	nop
+	ret
 
-	display_A:
-	  ldi r27, DISP_CHAR_A
-	  rjmp afterButtonRelease
-
-	display_N:
-	  ldi r27, DISP_CHAR_N
-	  rjmp afterButtonRelease
-
-afterButtonRelease: out PORTD, r27
-
+disp_R_C:
+	
+	nop
+	ret
+	
+disp_T:
+	ldi r27, DISP_CHAR_T
+	ret
+disp_E:
+	ldi r27, DISP_CHAR_E
+	ret
+disp_N:
+	ldi r27, DISP_CHAR_N
+	ret
+disp_A:
+	ldi r27, DISP_CHAR_A
+	ret
+disp_I:
+	ldi r27, DISP_CHAR_I
+	ret
+disp_M:
+	ldi r27, DISP_CHAR_M
+	ret
+disp_D:
+	ldi r27, DISP_CHAR_D
+	ret
+disp_K:
+	ldi r27, DISP_CHAR_K
+	ret
+disp_Q:
+	ldi r27, DISP_CHAR_Q
+	ret
+disp_O:
+	ldi r27, DISP_CHAR_O
+	ret
+disp_0:
+	ldi r27, DISP_CHAR_0
+	ret
+disp_Z:
+	ldi r27, DISP_CHAR_Z
+	ret
+disp_8:
+	ldi r27, DISP_CHAR_P
+	ret
+disp_error:	
+	ldi r27, DISP_CHAR_X
+	ret
+disp_error_TO0:
+	ldi r27, DISP_CHAR_O
+	ret
+disp_error_EN9:
+	ldi r27, DISP_CHAR_N
+	ret
+disp_error_AKQ:
+	ldi r27, DISP_CHAR_Q
+	ret
+disp_error_IDZ8:
+	ldi r27, DISP_CHAR_I
+	ret
+disp_error_runthoughthechars:	
+	ldi r27, DISP_CHAR_Z
+	ret
+	
+	
+1: out PORTD, r27
+	ldi r27, DISP_DOT
+	out PORTC, r27
 	pop r27
 	pop r16
 	; reset timer overflow, set timer to zero
@@ -223,7 +363,7 @@ afterButtonRelease: out PORTD, r27
 	; Going back to ISR
 	ret
 
-
+	
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
 	push r19
@@ -263,8 +403,6 @@ ready_display:
 	pop r21
 	ret
 
-.global reset_timer1
-
 reset_timer1:
 
 	push r17
@@ -272,7 +410,13 @@ reset_timer1:
 	clr r17			; setting timer back to 0
 	sts TCNT1H, r17		; high bit
 	sts TCNT1L, r17		; low bit
+	clr r29			; clears the button press counters
+	clr r28
 
 	pop r17
 
+
 	ret
+
+
+	
