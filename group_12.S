@@ -52,7 +52,7 @@ main:
 ;;; Wait for interrupts
 interrupt_loop: rjmp interrupt_loop
 
-.global timer1_compa_isr
+.global timer1_compa_isrs
 
 ;;; Timer1 has reached OCR1AH
 timer1_compa_isr:
@@ -134,6 +134,7 @@ end_timer1_cpt_isr:
 	pop r8
 	reti
 
+<<<<<<< Updated upstream
 debounce:
 
 	pop r17
@@ -208,6 +209,9 @@ short_press:
 	rcall reset_timer1
 	; Going back to ISR
 	ret
+=======
+.global timer1_cpt_isr
+>>>>>>> Stashed changes
 
 
 ;;; Call this when a morse signal is received, to reset the timeout
