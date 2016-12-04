@@ -22,6 +22,7 @@ main:
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
 	cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
+	sbi DDRB, 1
 
 	;;; Set output of 7 segment
 	ldi r16, DISP_ALL
@@ -46,6 +47,10 @@ main:
 	; Clear timer1 overflow register, just in case
 	clr r22
 
+	clr r27
+	clr r28
+	clr r29
+
 	; Global Interrupt Enable
 	sei
 
@@ -56,52 +61,44 @@ interrupt_loop: rjmp interrupt_loop
 
 ;;; Timer1 has reached OCR1AH
 timer1_compa_isr:
+
+	sbi PORTB, 1
 	push r16
 	in r16, SREG
 	push r16
 
-	lds r16, TCCR1B
-	; Are we waiting for a button release?
-	;sbrs r16, ICES1
-	rjmp checkSequence
 
-	tst r22
-	brne readyDisplay
+	lds r16, TCCR1B
+	; Is the sequence length = 0?
+	cpi r29, 0x00
+	brne checkSequence
+
+	rjmp readyDisplay
 
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
-
-	clr r29			; clears the button press counters
-	clr r28
 
 	;;; Cleanup and end timer1_compa_isr
 	rjmp endOverflowInterrupt
 
 checkSequence:
-	cpi r29, 0x0
-	breq readyDisplay
-
-	cpi r29, 0x1
+	cbi PORTB, 1
+	cpi r29, 0x01
 	breq one_press
 
-	cpi r29, 0x2
+	cpi r29, 0x02
 	breq two_press
 
 	rcall test_display
 
-	rjmp endOverflowInterrupt
+readyDisplay:
+	jmp ready_display
 
 .global endOverflowInterrupt
 endOverflowInterrupt:
-	out PORTD, r27
 	pop r16
-	out SREG, r16
 	pop r16
-
 	reti
-
-readyDisplay:
-	jmp ready_display
 
 .global timer1_cpt_isr
 ; Handle button input event
@@ -110,6 +107,8 @@ timer1_cpt_isr:
 	push r8
 	in r8, SREG
 	push r8
+
+	cbi PORTD, 3
 
 	; Save input capture timer to r8
 	lds r8, ICR1L
@@ -125,8 +124,6 @@ timer1_cpt_isr:
 	breq debounce
 
 	pop r17
-
-	rcall reset_timer1
 
 	; Check for rising or falling edge
 	push r17
@@ -145,9 +142,6 @@ timer1_cpt_isr:
 pressed:
 
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
-	clr r28
-	clr r29
-	rcall reset_timer1
 
 invertEdgeDetection:
 	sts TCCR1B, r17
@@ -185,18 +179,22 @@ one_press:
 	breq display_T
 	brne display_E
 
+	jmp endOverflowInterrupt
+
 two_press:
-	cpi r28, 0x01
+	cpi r28, BIT_PATT_A
 	breq display_A
 
-	cpi r28, 0x02
+	cpi r28, BIT_PATT_N
 	breq display_N
 
-	cpi r28, 0x3
+	cpi r28, BIT_PATT_M
 	breq display_M
 
-	cpi r28, 0x0
+	cpi r28, BIT_PATT_I
 	breq display_I
+
+	rjmp endOverflowInterrupt
 
 long_press:
 
@@ -207,6 +205,7 @@ long_press:
 	; display T for now
 	;ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
+	rcall reset_timer1
 	rjmp returnFromPressed
 
 
@@ -215,6 +214,7 @@ short_press:
 	rol r28
 	clr r27
 
+	rcall reset_timer1
 	rjmp returnFromPressed
 
 returnFromPressed:
@@ -222,7 +222,7 @@ returnFromPressed:
 	pop r16
 	; reset timer overflow, set timer to zero
 	clr r22
-	rcall reset_timer1
+	clr r29
 	; Going back to ISR
 	ret
 
@@ -265,7 +265,6 @@ ready_display:
 	pop r21
 	ret
 
-.global reset_timer1
 reset_timer1:
 
 	push r17
@@ -277,6 +276,8 @@ reset_timer1:
 	pop r17
 	ret
 
+; Jumps to places in decode.S
+; Workaround for a linker error
 display_A:
 	jmp displayA
 

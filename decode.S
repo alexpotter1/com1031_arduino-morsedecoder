@@ -19,25 +19,29 @@
   ; One character codes
   displayE:
     ldi r27, DISP_CHAR_E
-    jmp endOverflowInterrupt
+    rjmp 1f
 
   displayT:
     ldi r27, DISP_CHAR_T
-    jmp endOverflowInterrupt
+    rjmp 1f
 
   ; Two character codes
   displayA:
     ldi r27, DISP_CHAR_A
-    jmp endOverflowInterrupt
+    rjmp 1f
 
   displayN:
     ldi r27, DISP_CHAR_N
-    jmp endOverflowInterrupt
+    rjmp 1f
 
   displayI:
     ldi r27, DISP_CHAR_I
-    jmp endOverflowInterrupt
+    rjmp 1f
 
   displayM:
     ldi r27, DISP_CHAR_M
+    rjmp 1f
+
+  1:
+    out PORTD, r27
     jmp endOverflowInterrupt
