@@ -71,6 +71,9 @@ timer1_compa_isr:
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
 
+	clr r29			; clears the button press counters
+	clr r28
+
 	;;; Cleanup and end timer1_compa_isr
 	rjmp endOverflowInterrupt
 
@@ -142,6 +145,8 @@ timer1_cpt_isr:
 pressed:
 
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
+	clr r28
+	clr r29
 	rcall reset_timer1
 
 invertEdgeDetection:
@@ -268,8 +273,6 @@ reset_timer1:
 	clr r17			; setting timer back to 0
 	sts TCNT1H, r17		; high bit
 	sts TCNT1L, r17		; low bit
-	clr r29			; clears the button press counters
-	clr r28
 
 	pop r17
 	ret
