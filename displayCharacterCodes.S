@@ -62,7 +62,7 @@
 ;;; Bit Patterns for Each character to button press pattern
 
 	;; Two presses long
-	
+
 	BIT_PATT_A = 0x1
 	BIT_PATT_N = 0x2
 	BIT_PATT_I = 0

@@ -5,8 +5,8 @@
 #define __SFR_OFFSET 0
 #include <avr/io.h>
 
-#include "displayCharacterCodes.S"
 #include "decode.S"
+#include "displayCharacterCodes.S"
 
 
 ;;; user code starts from here, as init.S ends with jmp main:
@@ -52,7 +52,7 @@ main:
 ;;; Wait for interrupts
 interrupt_loop: rjmp interrupt_loop
 
-.global timer1_compa_isrs
+.global timer1_compa_isr
 
 ;;; Timer1 has reached OCR1AH
 timer1_compa_isr:
@@ -62,23 +62,43 @@ timer1_compa_isr:
 
 	lds r16, TCCR1B
 	; Are we waiting for a button release?
-	sbrs r16, ICES1
-	rjmp wait_for_press
+	;sbrs r16, ICES1
+	rjmp checkSequence
+
+	tst r22
+	brne readyDisplay
 
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
 
 	;;; Cleanup and end timer1_compa_isr
-	rjmp 1f
+	rjmp endOverflowInterrupt
 
-wait_for_press:
-	rcall ready_display
+checkSequence:
+	cpi r29, 0x0
+	breq readyDisplay
 
-1: pop r16
+	cpi r29, 0x1
+	breq one_press
+
+	cpi r29, 0x2
+	breq two_press
+
+	rcall test_display
+
+	rjmp endOverflowInterrupt
+
+.global endOverflowInterrupt
+endOverflowInterrupt:
+	out PORTD, r27
+	pop r16
 	out SREG, r16
 	pop r16
 
 	reti
+
+readyDisplay:
+	jmp ready_display
 
 .global timer1_cpt_isr
 ; Handle button input event
@@ -96,7 +116,7 @@ timer1_cpt_isr:
 
 	push r17
 
-	mov r17, r22
+	mov r17, r23
 	or r17, r8
 
 	breq debounce
@@ -134,7 +154,6 @@ end_timer1_cpt_isr:
 	pop r8
 	reti
 
-<<<<<<< Updated upstream
 debounce:
 
 	pop r17
@@ -156,52 +175,44 @@ released:
 	brcs short_press		; if dot (short press) jump to short_press
 	brcc long_press
 
+one_press:
+	cpi r28, 0x01
+	breq display_T
+	brne display_E
+
+two_press:
+	cpi r28, 0x01
+	breq display_A
+
+	cpi r28, 0x02
+	breq display_N
+
+	cpi r28, 0x3
+	breq display_M
+
+	cpi r28, 0x0
+	breq display_I
+
 long_press:
 
 	;; here store that the press was a dash
 	rol r28
 	inc r28
 
-	cpi r29, 0x02
-	breq two_digit
-
 	; display T for now
-	ldi r27, DISP_CHAR_T
+	;ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
-	rjmp 1f
+	rjmp returnFromPressed
 
 
 short_press:
-
 	;; here store that the press was a dot
 	rol r28
 	clr r27
 
-	cpi r29, 0x02
-	breq two_digit
+	rjmp returnFromPressed
 
-	; Display E for now
-	ldi r27, DISP_CHAR_E
-
-	two_digit:
-	  ldi r16, BIT_PATT_A
-	  cp r16, r28
-	  breq display_A
-
-	  ldi r16, BIT_PATT_N
-	  cp r16, r28
-	  breq display_N
-
-	display_A:
-	  ldi r27, DISP_CHAR_A
-	  rjmp 1f
-
-	display_N:
-	  ldi r27, DISP_CHAR_N
-	  rjmp 1f
-
-1: out PORTD, r27
-
+returnFromPressed:
 	pop r27
 	pop r16
 	; reset timer overflow, set timer to zero
@@ -209,10 +220,6 @@ short_press:
 	rcall reset_timer1
 	; Going back to ISR
 	ret
-=======
-.global timer1_cpt_isr
->>>>>>> Stashed changes
-
 
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
@@ -254,7 +261,6 @@ ready_display:
 	ret
 
 .global reset_timer1
-
 reset_timer1:
 
 	push r17
@@ -266,5 +272,22 @@ reset_timer1:
 	clr r28
 
 	pop r17
-
 	ret
+
+display_A:
+	jmp displayA
+
+display_I:
+	jmp displayI
+
+display_N:
+	jmp displayN
+
+display_M:
+	jmp displayM
+
+display_E:
+	jmp displayE
+
+display_T:
+	jmp displayT
