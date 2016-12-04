@@ -20,7 +20,7 @@ main:
 	call test_display
 
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
-	cbi DDRB, BUTTON
+	;cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
 
 	;;; Set output of 7 segment
@@ -63,16 +63,24 @@ timer1_compa_isr:
 	lds r16, TCCR1B
 	; Are we waiting for a button release?
 	sbrs r16, ICES1
-	rjmp wait_for_press
+	rcall wait_for_press
 
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
+
+	;;; Inter-letter timeout elapsed, so reset signal registers
+	clr r29
+	clr r28
 
 	;;; Cleanup and end timer1_compa_isr
 	rjmp 1f
 
 wait_for_press:
 	rcall ready_display
+
+	cpi r29, 0x02
+	breq two_digit
+	brne one_digit
 
 1: pop r16
 	out SREG, r16
@@ -103,7 +111,6 @@ timer1_cpt_isr:
 
 	pop r17
 
-	rcall reset_timer1
 
 	; Check for rising or falling edge
 	push r17
@@ -161,14 +168,24 @@ long_press:
 	rol r28
 	inc r28
 
-	cpi r29, 0x02
-	breq two_digit
+	rcall ready_display
+	rjmp afterButtonRelease
 
+one_digit:
+	cpi r28, 0x01
+	breq displayT
+	brne displayE
+
+displayT:
 	; display T for now
 	ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
-	rjmp 1f
+	rjmp afterButtonRelease
 
+displayE:
+	; Display E for now
+	ldi r27, DISP_CHAR_E
+	rjmp afterButtonRelease
 
 short_press:
 
@@ -176,11 +193,8 @@ short_press:
 	rol r28
 	clr r27
 
-	cpi r29, 0x02
-	breq two_digit
-
-	; Display E for now
-	ldi r27, DISP_CHAR_E
+	rcall ready_display
+	rjmp afterButtonRelease
 
 	two_digit:
 	  ldi r16, BIT_PATT_A
@@ -193,13 +207,13 @@ short_press:
 
 	display_A:
 	  ldi r27, DISP_CHAR_A
-	  rjmp 1f
+	  rjmp afterButtonRelease
 
 	display_N:
 	  ldi r27, DISP_CHAR_N
-	  rjmp 1f
+	  rjmp afterButtonRelease
 
-1: out PORTD, r27
+afterButtonRelease: out PORTD, r27
 
 	pop r27
 	pop r16
@@ -258,8 +272,6 @@ reset_timer1:
 	clr r17			; setting timer back to 0
 	sts TCNT1H, r17		; high bit
 	sts TCNT1L, r17		; low bit
-	clr r29			; clears the button press counters
-	clr r28
 
 	pop r17
 
