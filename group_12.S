@@ -22,7 +22,7 @@ main:
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
 	cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
-
+	
 	;;; Set output of 7 segment
 	ldi r16, DISP_ALL
 	out DDRD, r16
@@ -42,7 +42,7 @@ main:
 	;;; Enable noise-cancelling and set prescaler properly
 	ldi r18, _BV(ICNC1) | _BV(CS12) | _BV(WGM12) | _BV(CS10)
 	sts TCCR1B, r18
-
+	
 	; Clear timer1 overflow register, just in case
 	clr r22
 
@@ -59,25 +59,25 @@ timer1_compa_isr:
 	push r16
 	in r16, SREG
 	push r16
-
+	
 	lds r16, TCCR1B
 	; Are we waiting for a button release?
 	sbrs r16, ICES1
 	rjmp wait_for_press
-
+	
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
-
+	
 	;;; Cleanup and end timer1_compa_isr
 	rjmp 1f
-
+	
 wait_for_press:
 	rcall ready_display
-
+	
 1: pop r16
 	out SREG, r16
 	pop r16
-
+	
 	reti
 
 .global timer1_cpt_isr
@@ -102,9 +102,9 @@ timer1_cpt_isr:
 	breq debounce
 
 	pop r17
-
+	
 	rcall reset_timer1
-
+	
 	; Check for rising or falling edge
 	push r17
 	lds r17, TCCR1B
@@ -113,17 +113,17 @@ timer1_cpt_isr:
 	; skip pressed if button is released
 	rjmp pressed
 	rcall released
-
+	
 
 	andi r17, ~(_BV(ICES1))
 
 	rjmp invertEdgeDetection
-
+	
 pressed:
-
+	
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
 	rcall reset_timer1
-
+	
 invertEdgeDetection:
 	sts TCCR1B, r17
 
@@ -142,63 +142,42 @@ debounce:
 	pop r8
 
 	reti
-
+	
 released:
 
 	push r16
 	push r27
-
+	
 	inc r29			; increment the button press counter
+	
+	; Is the timer1 overflow register zero (or minus)?
+	tst r22
+	; If it isn't, it has been set, so do a long press
+	brne long_press
 
 	ldi r16, MORSE_SIGNAL_BOUNDARY ; testing whether dot or dash
 	cp r8,r16
 	brcs short_press		; if dot (short press) jump to short_press
-	brcc long_press
-
+	
 long_press:
 
 	;; here store that the press was a dash
 	rol r28
 	inc r28
-
-	cpi r29, 0x02
-	breq two_digit
-
 	; display T for now
 	ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
 	rjmp 1f
-
+	
 
 short_press:
 
 	;; here store that the press was a dot
 	rol r28
 	clr r27
-
-	cpi r29, 0x02
-	breq two_digit
-
 	; Display E for now
 	ldi r27, DISP_CHAR_E
-
-	two_digit:
-	  ldi r16, BIT_PATT_A
-	  cp r16, r28
-	  breq display_A
-
-	  ldi r16, BIT_PATT_N
-	  cp r16, r28
-	  breq display_N
-
-	display_A:
-	  ldi r27, DISP_CHAR_A
-	  rjmp 1f
-
-	display_N:
-	  ldi r27, DISP_CHAR_N
-	  rjmp 1f
-
+	
 1: out PORTD, r27
 
 	pop r27
@@ -209,7 +188,7 @@ short_press:
 	; Going back to ISR
 	ret
 
-
+	
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
 	push r19
@@ -249,8 +228,6 @@ ready_display:
 	pop r21
 	ret
 
-.global reset_timer1
-
 reset_timer1:
 
 	push r17
@@ -264,3 +241,6 @@ reset_timer1:
 	pop r17
 
 	ret
+
+
+	
