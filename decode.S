@@ -15,6 +15,28 @@
   ;;; Anything longer is a dash, anything shorter is a dot
   MORSE_SIGNAL_BOUNDARY = 2 * TICK_COUNT / 10
   INTER_SIGNAL_BOUNDARY = 2 * MORSE_SIGNAL_BOUNDARY
+  
+  one_press:
+  	cpi r28, 0x01
+  	breq displayT
+  	brne displayE
+  
+  	jmp endOverflowInterrupt
+  
+  two_press:
+  	cpi r28, BIT_PATT_A
+  	breq displayA
+  
+  	cpi r28, BIT_PATT_N
+  	breq displayN
+  
+  	cpi r28, BIT_PATT_M
+  	breq displayM
+  
+  	cpi r28, BIT_PATT_I
+  	breq displayI
+  
+  	jmp endOverflowInterrupt
 
   ; One character codes
   displayE:

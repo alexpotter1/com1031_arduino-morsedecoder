@@ -73,10 +73,12 @@ timer1_compa_isr:
 	cpi r29, 0x00
 	brne checkSequence
 
-	rjmp readyDisplay
+	rcall readyDisplay
 
 	;;; Button is being held down, so set timer overflow register (r22)
 	ser r22
+	
+	clr r29
 
 	;;; Cleanup and end timer1_compa_isr
 	rjmp endOverflowInterrupt
@@ -84,10 +86,10 @@ timer1_compa_isr:
 checkSequence:
 	cbi PORTB, 1
 	cpi r29, 0x01
-	breq one_press
+	breq onePress
 
 	cpi r29, 0x02
-	breq two_press
+	breq twoPress
 
 	rcall test_display
 
@@ -97,8 +99,15 @@ readyDisplay:
 .global endOverflowInterrupt
 endOverflowInterrupt:
 	pop r16
+	out SREG, r16
 	pop r16
 	reti
+	
+onePress:
+	jmp one_press 
+	
+twoPress:
+	jmp two_press
 
 .global timer1_cpt_isr
 ; Handle button input event
@@ -174,28 +183,6 @@ released:
 	brcs short_press		; if dot (short press) jump to short_press
 	brcc long_press
 
-one_press:
-	cpi r28, 0x01
-	breq display_T
-	brne display_E
-
-	jmp endOverflowInterrupt
-
-two_press:
-	cpi r28, BIT_PATT_A
-	breq display_A
-
-	cpi r28, BIT_PATT_N
-	breq display_N
-
-	cpi r28, BIT_PATT_M
-	breq display_M
-
-	cpi r28, BIT_PATT_I
-	breq display_I
-
-	rjmp endOverflowInterrupt
-
 long_press:
 
 	;; here store that the press was a dash
@@ -222,7 +209,6 @@ returnFromPressed:
 	pop r16
 	; reset timer overflow, set timer to zero
 	clr r22
-	clr r29
 	; Going back to ISR
 	ret
 
@@ -275,23 +261,3 @@ reset_timer1:
 
 	pop r17
 	ret
-
-; Jumps to places in decode.S
-; Workaround for a linker error
-display_A:
-	jmp displayA
-
-display_I:
-	jmp displayI
-
-display_N:
-	jmp displayN
-
-display_M:
-	jmp displayM
-
-display_E:
-	jmp displayE
-
-display_T:
-	jmp displayT

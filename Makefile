@@ -10,7 +10,7 @@ OBJ = $(PRG).o init.o displayCharacterCodes.o display_digit.o decode.o
 
 MCU_TARGET = atmega328p
 #OPTIMIZE = -Os
-OPTIMIZE = -O0
+OPTIMIZE = -Ofast
 
 DEFS =
 LIBS =
