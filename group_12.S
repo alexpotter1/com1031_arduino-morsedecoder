@@ -22,6 +22,7 @@ main:
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
 	cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
+	sbi DDRC, 5
 
 	;;; Set output of 7 segment
 	ldi r16, DISP_ALL
@@ -61,19 +62,23 @@ interrupt_loop:
 ;;; Timer1 has reached OCR1AH
 timer1_compa_isr:
 
-	sbi PORTB, 1
 	push r16
 	in r16, SREG
 	push r16
+	push r27
 	
+	ldi r16, TCCR1B
 	tst r29
+	sbrs r16, ICES1
 	brne checkSequence
+	; Otherwise just reset display to ready state
 	rcall ready_display
 
 	;;; Cleanup and end timer1_compa_isr
 	rjmp endOverflowInterrupt
 
 checkSequence:
+	
 	cpi r29, 0x01
 	breq onePress
 
@@ -84,6 +89,7 @@ checkSequence:
 .global checkSequenceNotMatched
 checkSequenceNotMatched:
 	rcall error_display
+	rjmp endOverflowInterruptStartNewLetter
 
 .global endOverflowInterruptStartNewLetter
 endOverflowInterruptStartNewLetter:
@@ -94,6 +100,7 @@ endOverflowInterruptStartNewLetter:
 
 ;;; Fall through to this
 endOverflowInterrupt:
+	pop r27
 	pop r16
 	out SREG, r16
 	pop r16
@@ -184,11 +191,10 @@ released:
 long_press:
 
 	;; here store that the press was a dash
-	rol r28
 	inc r28
+	lsl r28
 
 	; display T for now
-	;ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
 	rcall reset_timer1
 	rjmp returnFromPressed
@@ -196,7 +202,8 @@ long_press:
 
 short_press:
 	;; here store that the press was a dot
-	rol r28
+	inc r28
+	lsr r28
 
 	rcall reset_timer1
 	rjmp returnFromPressed

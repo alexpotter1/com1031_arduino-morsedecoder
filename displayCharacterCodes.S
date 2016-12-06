@@ -60,13 +60,15 @@
 	DISP_CHAR_Z = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
 
 ;;; Bit Patterns for Each character to button press pattern
+	;;; Dot: Increment then logical shift right (wraparound)
+	;;; Dash: Increment then logical shift left (wraparound)
 
 	;; Two presses long
 
-	BIT_PATT_A = 0x1
-	BIT_PATT_N = 0x2
-	BIT_PATT_I = 0
-	BIT_PATT_M = 0x3
+	BIT_PATT_A = 0x03
+	BIT_PATT_N = 0x09
+	BIT_PATT_I = 0x0C
+	BIT_PATT_M = 0x06
 
 	;; Three presses long
 

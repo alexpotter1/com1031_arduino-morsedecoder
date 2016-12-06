@@ -18,10 +18,14 @@
   
   one_press:
     ; r28 stores bit pattern of morse signal
-    ; 1 = one dash
-  	cpi r28, 0x01
-  	breq displayT
-    brne displayE
+    ; 0x02 = one dash
+    cpi r28, 0x02 
+    breq displayT
+    
+    ; 0x08 = one dot
+    cpi r28, 0x08
+    breq displayE
+    
     
     ; If neither...
   	jmp checkSequenceNotMatched
@@ -30,44 +34,51 @@
   	cpi r28, BIT_PATT_A
   	breq displayA
   
-  	;cpi r28, BIT_PATT_N
-  	;breq displayN
+  	cpi r28, BIT_PATT_N
+  	breq displayN
   
-  	;cpi r28, BIT_PATT_M
-  	;breq displayM
+  	cpi r28, BIT_PATT_M
+  	breq displayM
   
-  	;cpi r28, BIT_PATT_I
-  	;breq displayI
+  	cpi r28, BIT_PATT_I
+  	breq displayI
   
   	jmp checkSequenceNotMatched
-
-  ; One character codes
+    
+  ;;; One character codes
   displayE:
     ldi r27, DISP_CHAR_E
-    rjmp 1f
+    out PORTD, r27
+    rjmp cleanupDisplayLetter
+    
+  cleanupDisplayLetter:
+    ldi r27, DISP_DOT
+    out PORTC, r27
+    jmp endOverflowInterruptStartNewLetter
 
   displayT:
     ldi r27, DISP_CHAR_T
-    rjmp 1f
+    out PORTD, r27
+    rjmp cleanupDisplayLetter
 
-  ; Two character codes
+  ;;; Two character codes
   displayA:
     ldi r27, DISP_CHAR_A
-    rjmp 1f
+    out PORTD, r27
+    rjmp cleanupDisplayLetter
 
   displayN:
     ldi r27, DISP_CHAR_N
-    rjmp 1f
+    out PORTD, r27
+    rjmp cleanupDisplayLetter
 
   displayI:
     ldi r27, DISP_CHAR_I
-    rjmp 1f
+    out PORTD, r27
+    rjmp cleanupDisplayLetter
 
   displayM:
     ldi r27, DISP_CHAR_M
-    rjmp 1f
-
-  1:
     out PORTD, r27
-    clr r27
-    jmp endOverflowInterruptStartNewLetter
+    rjmp cleanupDisplayLetter
+
