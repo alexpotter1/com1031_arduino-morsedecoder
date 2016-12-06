@@ -22,7 +22,6 @@ main:
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
 	cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
-	sbi DDRB, 1
 
 	;;; Set output of 7 segment
 	ldi r16, DISP_ALL
@@ -46,7 +45,6 @@ main:
 
 	; Clear timer1 overflow register, just in case
 	clr r22
-
 	clr r27
 	clr r28
 	clr r29
@@ -55,7 +53,8 @@ main:
 	sei
 
 ;;; Wait for interrupts
-interrupt_loop: rjmp interrupt_loop
+interrupt_loop:
+	rjmp interrupt_loop
 
 .global timer1_compa_isr
 
@@ -66,41 +65,41 @@ timer1_compa_isr:
 	push r16
 	in r16, SREG
 	push r16
-
-
-	lds r16, TCCR1B
-	; Is the sequence length = 0?
-	cpi r29, 0x00
-	brne checkSequence
-
-	rcall readyDisplay
-
-	;;; Button is being held down, so set timer overflow register (r22)
-	ser r22
 	
-	clr r29
+	tst r29
+	brne checkSequence
+	rcall ready_display
 
 	;;; Cleanup and end timer1_compa_isr
 	rjmp endOverflowInterrupt
 
 checkSequence:
-	cbi PORTB, 1
 	cpi r29, 0x01
 	breq onePress
 
 	cpi r29, 0x02
 	breq twoPress
+	
+; checkSequence falls through to this if nothing matches
+.global checkSequenceNotMatched
+checkSequenceNotMatched:
+	rcall error_display
 
-	rcall test_display
+.global endOverflowInterruptStartNewLetter
+endOverflowInterruptStartNewLetter:
 
-readyDisplay:
-	jmp ready_display
+	;;; Reset r28, r29 because we want a new letter now
+	clr r28
+	clr r29
 
-.global endOverflowInterrupt
+;;; Fall through to this
 endOverflowInterrupt:
 	pop r16
 	out SREG, r16
 	pop r16
+	
+	;;; Set timer overflow register (r22)
+	ser r22
 	reti
 	
 onePress:
@@ -116,8 +115,6 @@ timer1_cpt_isr:
 	push r8
 	in r8, SREG
 	push r8
-
-	cbi PORTD, 3
 
 	; Save input capture timer to r8
 	lds r8, ICR1L
@@ -141,6 +138,7 @@ timer1_cpt_isr:
 	sbrs r17, ICES1
 	; skip pressed if button is released
 	rjmp pressed
+	sbrc r17, ICES1
 	rcall released
 
 
@@ -199,7 +197,6 @@ long_press:
 short_press:
 	;; here store that the press was a dot
 	rol r28
-	clr r27
 
 	rcall reset_timer1
 	rjmp returnFromPressed
@@ -236,6 +233,13 @@ test_display:
 	out PORTC, r21
 
 	pop r21
+	ret
+	
+error_display:
+	; Set top, middle and bottom segment of display to ON (segments A G D)
+	cbi PORTD, DISP_A
+	cbi PORTD, DISP_G
+	cbi PORTD, DISP_D
 	ret
 
 ready_display:

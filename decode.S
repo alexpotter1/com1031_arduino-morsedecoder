@@ -17,26 +17,29 @@
   INTER_SIGNAL_BOUNDARY = 2 * MORSE_SIGNAL_BOUNDARY
   
   one_press:
+    ; r28 stores bit pattern of morse signal
+    ; 1 = one dash
   	cpi r28, 0x01
   	breq displayT
-  	brne displayE
-  
-  	jmp endOverflowInterrupt
+    brne displayE
+    
+    ; If neither...
+  	jmp checkSequenceNotMatched
   
   two_press:
   	cpi r28, BIT_PATT_A
   	breq displayA
   
-  	cpi r28, BIT_PATT_N
-  	breq displayN
+  	;cpi r28, BIT_PATT_N
+  	;breq displayN
   
-  	cpi r28, BIT_PATT_M
-  	breq displayM
+  	;cpi r28, BIT_PATT_M
+  	;breq displayM
   
-  	cpi r28, BIT_PATT_I
-  	breq displayI
+  	;cpi r28, BIT_PATT_I
+  	;breq displayI
   
-  	jmp endOverflowInterrupt
+  	jmp checkSequenceNotMatched
 
   ; One character codes
   displayE:
@@ -66,4 +69,5 @@
 
   1:
     out PORTD, r27
-    jmp endOverflowInterrupt
+    clr r27
+    jmp endOverflowInterruptStartNewLetter
