@@ -84,7 +84,12 @@ checkSequence:
 
 	cpi r29, 0x02
 	breq twoPress
-	
+
+	cpi r29, 0x03
+	breq threePress
+
+	cpi r29, 0x04
+	breq fourPress
 ; checkSequence falls through to this if nothing matches
 .global checkSequenceNotMatched
 checkSequenceNotMatched:
@@ -95,6 +100,7 @@ checkSequenceNotMatched:
 endOverflowInterruptStartNewLetter:
 
 	;;; Reset r28, r29 because we want a new letter now
+	
 	clr r28
 	clr r29
 
@@ -115,6 +121,11 @@ onePress:
 twoPress:
 	jmp two_press
 
+threePress:
+	jmp three_press
+
+fourPress:
+	jmp four_press
 .global timer1_cpt_isr
 ; Handle button input event
 timer1_cpt_isr:
@@ -191,7 +202,7 @@ released:
 long_press:
 
 	;; here store that the press was a dash
-	inc r28
+       
 	lsl r28
 
 	; display T for now
@@ -202,8 +213,9 @@ long_press:
 
 short_press:
 	;; here store that the press was a dot
+
+	lsl r28
 	inc r28
-	lsr r28
 
 	rcall reset_timer1
 	rjmp returnFromPressed
