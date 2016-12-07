@@ -18,7 +18,7 @@ LIBS =
 CC = avr-gcc
 AS = avr-gcc
 
-CFLAGS = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS)
+CFLAGS = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) 
 LDFLAGS = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) -nostdlib $(DEFS)
 AFLAGS = -g -Wall -mmcu=$(MCU_TARGET) $(DEFS) -c
 

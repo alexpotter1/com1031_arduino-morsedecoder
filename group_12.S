@@ -201,8 +201,6 @@ released:
 
 long_press:
 
-	;; here store that the press was a dash
-       
 	lsl r28
 
 	; display T for now
@@ -213,8 +211,6 @@ long_press:
 
 short_press:
 	;; here store that the press was a dot
-
-	lsl r28
 	inc r28
 
 	rcall reset_timer1

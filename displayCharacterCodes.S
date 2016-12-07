@@ -66,7 +66,7 @@
 	;;one press
 
 	BIT_PATT_T = 0x00
-        BIT_PATT_E = 0x01
+  BIT_PATT_E = 0x01
 	
 	;;two press
 	BIT_PATT_M = 0x00
