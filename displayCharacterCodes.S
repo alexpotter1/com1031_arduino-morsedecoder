@@ -53,7 +53,7 @@
 	DISP_CHAR_S = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_T = ~( _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_U = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
-	DISP_CHAR_V = ~( _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E))
+	DISP_CHAR_V = ~( _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
 	DISP_CHAR_W = ~( _BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_X = ~( _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
 	DISP_CHAR_Y = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
@@ -63,15 +63,39 @@
 	;;; Dot: Increment then logical shift right (wraparound)
 	;;; Dash: Increment then logical shift left (wraparound)
 
-	;; Two presses long
+	;;one press
 
-	BIT_PATT_A = 0x03
-	BIT_PATT_N = 0x09
-	BIT_PATT_I = 0x0C
-	BIT_PATT_M = 0x06
+	BIT_PATT_T = 0x00
+        BIT_PATT_E = 0x01
+	
+	;;two press
+	BIT_PATT_M = 0x00
+	BIT_PATT_N = 0x01
+	BIT_PATT_A = 0x02
+	BIT_PATT_I = 0x03
 
 	;; Three presses long
+	BIT_PATT_O = 0x00
+	BIT_PATT_G = 0x01
+	BIT_PATT_K = 0x02
+	BIT_PATT_D = 0x03   
+	BIT_PATT_W = 0x04
+	BIT_PATT_R = 0x05
+	BIT_PATT_U = 0x06
+	BIT_PATT_S = 0x07
 
 	;; Four presses long
+	BIT_PATT_Q = 0x02
+	BIT_PATT_Z = 0x03
+	BIT_PATT_Y = 0x04
+	BIT_PATT_C = 0x05
+	BIT_PATT_X = 0x06
+	BIT_PATT_B = 0x07
+	BIT_PATT_J = 0x08
+	BIT_PATT_P = 0x09
+	BIT_PATT_L = 0x0B
+	BIT_PATT_F = 0x0D
+	BIT_PATT_V = 0x0E	
+	BIT_PATT_H = 0x0F
 
 	;; Five presses long
