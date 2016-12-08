@@ -57,7 +57,7 @@
 	DISP_CHAR_W = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_X = ~(_BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
 	DISP_CHAR_Y = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_Z = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_Z = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_G))
 
 ;;; Bit Patterns for Each character to button press pattern
 	;;; Dot: Increment then logical shift right (wraparound)
