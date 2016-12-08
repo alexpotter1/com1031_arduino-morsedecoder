@@ -16,46 +16,49 @@
   MORSE_SIGNAL_BOUNDARY = 2 * TICK_COUNT / 10
   INTER_SIGNAL_BOUNDARY = 2 * MORSE_SIGNAL_BOUNDARY
 
-;;; One Signal length letter
+;;; One Signal length letter - compares r28 to find corresponding letter
 one_press:
-	cpi r28, BIT_PATT_T	; r28 stores bit pattern of morse signal
-	breq displayT		; 0x00 = one dash	
+	; r28 stores bit pattern of morse signal
+	
+	cpi r28, BIT_PATT_T	; 0x00 = one dash
+	breq displayT			
 				
-	; 0x01 = one dot
-	cpi r28, 0x01       
+	cpi r28, 0x01       	; 0x01 = one dot
 	breq displayE
     
 	; If neither...
-  	jmp checkSequenceNotMatched
+  	jmp checkSequenceNotMatched ; Invalid Signal Sequence (Error Message) - isn't possible
     
-;;; One character codes
+;;; One character codes - 
 displayE:
-	ldi r27, DISP_CHAR_E
+	ldi r27, DISP_CHAR_E	
 	rjmp cleanupDisplayLetter
 
 displayT:
 	ldi r27, DISP_CHAR_T
 	rjmp cleanupDisplayLetter
 
-;;; Two Signal length letter
+;;; Two Signal length letter - compares r28 to find corresponding letter
 two_press:
-  	cpi r28, BIT_PATT_A
-  	breq displayA
-  
-  	cpi r28, BIT_PATT_N
-  	breq displayN
-  
-  	cpi r28, BIT_PATT_M
+	; r28 stores bit pattern of morse signal
+
+  	cpi r28, BIT_PATT_M	;0x00
   	breq displayM
   
-  	cpi r28, BIT_PATT_I
+  	cpi r28, BIT_PATT_N	;0x01
+  	breq displayN
+	
+    	cpi r28, BIT_PATT_A	;0x02
+  	breq displayA
+	  
+  	cpi r28, BIT_PATT_I 	;0x03
   	breq displayI
   
-  	jmp checkSequenceNotMatched
+  	jmp checkSequenceNotMatched ; Invalid Signal Sequence (Error Message) - isn't possible
 
   ;;; Two character codes
 displayA:
-	ldi r27, DISP_CHAR_A
+	ldi r27, DISP_CHAR_A	
 	rjmp cleanupDisplayLetter
 
 displayN:
@@ -70,33 +73,35 @@ displayM:
 	ldi r27, DISP_CHAR_M
 	rjmp cleanupDisplayLetter
 	
-;;; Three Signal length letter
+;;; Three Signal length letter - compares r28 to find corresponding letter
 three_press:
-  	cpi r28, BIT_PATT_O
+	; r28 stores bit pattern of morse signal
+	
+  	cpi r28, BIT_PATT_O 	;0x00
     	breq displayO
     	
-  	cpi r28, BIT_PATT_G
+  	cpi r28, BIT_PATT_G	;0x01
     	breq displayG
     
-  	cpi r28, BIT_PATT_K
+  	cpi r28, BIT_PATT_K	;0x02
     	breq displayK
     
-  	cpi r28, BIT_PATT_D
+  	cpi r28, BIT_PATT_D	;0x03
     	breq displayD
-    
-  	cpi r28, BIT_PATT_W
+
+  	cpi r28, BIT_PATT_W	;0x04
     	breq displayW
     
-  	cpi r28, BIT_PATT_R
+  	cpi r28, BIT_PATT_R	;0x05
     	breq displayR
     
-  	cpi r28, BIT_PATT_U
+  	cpi r28, BIT_PATT_U	;0x06
     	breq displayU
     
-  	cpi r28, BIT_PATT_S
+  	cpi r28, BIT_PATT_S	;0x07
     	breq displayS
   
-	jmp checkSequenceNotMatched
+	jmp checkSequenceNotMatched ;Invalid signal sequence (Error message) - shouldn't be possible
 
 ;;; Three Character codes
 displayO:
@@ -130,46 +135,48 @@ displayS:
 	ldi r27, DISP_CHAR_S
 	rjmp cleanupDisplayLetter
 
-;;; Three Signal length letter
+;;; Three Signal length letter - compares r28 to find corresponding letter
 
 four_press:
-  	cpi r28, BIT_PATT_Q
+	; r28 stores bit pattern of morse signal
+	
+  	cpi r28, BIT_PATT_Q	;0x02
     	breq displayQ
     	
-  	cpi r28, BIT_PATT_Z
+  	cpi r28, BIT_PATT_Z	;0x03
     	breq displayZ
     
-  	cpi r28, BIT_PATT_Y
+  	cpi r28, BIT_PATT_Y	;0x04
     	breq displayY
     
-  	cpi r28, BIT_PATT_C
+  	cpi r28, BIT_PATT_C	;0x05
     	breq displayC
     
-  	cpi r28, BIT_PATT_X
+  	cpi r28, BIT_PATT_X	;0x06
     	breq displayX
     
-  	cpi r28, BIT_PATT_B
+  	cpi r28, BIT_PATT_B	;0x07
     	breq displayB
     
-  	cpi r28, BIT_PATT_J
+  	cpi r28, BIT_PATT_J	;0x08
     	breq displayJ
     
-  	cpi r28, BIT_PATT_P
+  	cpi r28, BIT_PATT_P	;0x09
     	breq displayP
 
-  	cpi r28, BIT_PATT_L
+  	cpi r28, BIT_PATT_L	;0x0B
     	breq displayL
     
-  	cpi r28, BIT_PATT_F
+  	cpi r28, BIT_PATT_F	;0x0D
     	breq displayF
     
-  	cpi r28, BIT_PATT_V
+  	cpi r28, BIT_PATT_V	;0X0E
     	breq displayV
     
-  	cpi r28, BIT_PATT_H
+  	cpi r28, BIT_PATT_H	;0x0F
     	breq displayH
       
-	jmp checkSequenceNotMatched
+	jmp checkSequenceNotMatched ; Invalid Signal Sequence (Error Message)
 
 ;;; Four Signal length letters
 displayQ:
@@ -220,38 +227,42 @@ displayH:
 	ldi r27, DISP_CHAR_H
 	rjmp cleanupDisplayLetter
 
-;;; Five Signal length character
+;;; Five Signal length character - compares r28 to find corresponding number
 
 five_press:
-	cpi r28, BIT_PATT_0
+	; r28 stores bit pattern of morse signal
+	
+	cpi r28, BIT_PATT_0	;0x00
 	breq display0
 
-	cpi r28, BIT_PATT_1
+	cpi r28, BIT_PATT_1	;0x10
 	breq display1
 
-	cpi r28, BIT_PATT_2
+	cpi r28, BIT_PATT_2	;0x18
 	breq display2
 
-	cpi r28, BIT_PATT_3
+	cpi r28, BIT_PATT_3	;0x1C
 	breq display3
-
-	cpi r28, BIT_PATT_4
+	
+	cpi r28, BIT_PATT_4	;0x1E
 	breq display4
 
-	cpi r28, BIT_PATT_5
+	cpi r28, BIT_PATT_5	;0x1F
 	breq display5
 
-	cpi r28, BIT_PATT_6
+	cpi r28, BIT_PATT_6	;0x0F
 	breq display6
 
-	cpi r28, BIT_PATT_7
+	cpi r28, BIT_PATT_7	;0x07
 	breq display7
 
-	cpi r28, BIT_PATT_8
+	cpi r28, BIT_PATT_8	;0x03
 	breq display8
 
-	cpi r28, BIT_PATT_9
+	cpi r28, BIT_PATT_9	;0x01
 	breq display9
+
+	jmp checkSequenceNotMatched ; Invalid Signal Sequence (Error Message)
 	
 ;;; Five Signal length Numbers
 
@@ -297,12 +308,14 @@ display9:
 	
 ;;; Resets Display
 cleanupDisplayLetter:
+	;; If the signals create a letter
 	out PORTD, r27
 	ldi r27, DISP_DOT
 	out PORTC, r27
 	jmp endOverflowInterruptStartNewLetter
 
 cleanupDisplayNumber:
+	;; If the signals create a number
 	out PORTD, r27
 	ldi r27, ~(DISP_DOT)
 	out PORTC, r27

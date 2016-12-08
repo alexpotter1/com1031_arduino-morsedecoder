@@ -17,9 +17,10 @@
 
 	;;; Turn on all parts of display
 	DISP_ALL = _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G)
+	;;; Turn on the bottom right dot (DP2)
 	DISP_DOT = _BV(DISP_H)
 
-	;;; Hex digits 0-F
+	;;; Display Patterns for All letters A-Z, and all numbers 0-9
 	;;; logical 0 = segment is on
 
 	DISP_CHAR_0 = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | DISP_DOT)
@@ -60,8 +61,8 @@
 	DISP_CHAR_Z = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_G))
 
 ;;; Bit Patterns for Each character to button press pattern
-	;;; Dot: Increment then logical shift right (wraparound)
-	;;; Dash: Increment then logical shift left (wraparound)
+	;;; Dot: logical shift left then increment
+	;;; Dash: logical shift left
 
 	;;one press
 
@@ -99,13 +100,14 @@
 	BIT_PATT_H = 0x0F
 
 	;; Five presses long
-	BIT_PATT_5 = 0x1F
-	BIT_PATT_4 = 0x1E
-	BIT_PATT_3 = 0x1C
-	BIT_PATT_2 = 0x18
+	BIT_PATT_0 = 0x00
 	BIT_PATT_1 = 0x10
+	BIT_PATT_2 = 0x18
+	BIT_PATT_3 = 0x1C
+	BIT_PATT_4 = 0x1E
+	BIT_PATT_5 = 0x1F
 	BIT_PATT_6 = 0x0F
 	BIT_PATT_7 = 0x07
 	BIT_PATT_8 = 0x03
 	BIT_PATT_9 = 0x01
-	BIT_PATT_0 = 0x00
+
