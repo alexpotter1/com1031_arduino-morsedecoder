@@ -1,5 +1,5 @@
-;;;  YOUR CODE SHOULD GO INTO THIS FILE.
-;;;	PLEASE ADD YOUR OWN COMMENTED HEADER
+;;; Group 12 Coursework
+;;; Alex Potter, Alfin Jose, Adrien Royer, Nick Sweeting
 
 ;;; just including the standard symbol definitions of all ports:
 #define __SFR_OFFSET 0
@@ -90,6 +90,10 @@ checkSequence:
 
 	cpi r29, 0x04
 	breq fourPress
+
+	cpi r29, 0x05
+	breq fivePress
+	
 ; checkSequence falls through to this if nothing matches
 .global checkSequenceNotMatched
 checkSequenceNotMatched:
@@ -126,6 +130,10 @@ threePress:
 
 fourPress:
 	jmp four_press
+
+fivePress:
+	jmp five_press
+	
 .global timer1_cpt_isr
 ; Handle button input event
 timer1_cpt_isr:
@@ -167,7 +175,8 @@ timer1_cpt_isr:
 pressed:
 
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
-
+	rcall reset_timer1
+	
 invertEdgeDetection:
 	sts TCCR1B, r17
 
@@ -211,6 +220,7 @@ long_press:
 
 short_press:
 	;; here store that the press was a dot
+	lsl r28
 	inc r28
 
 	rcall reset_timer1

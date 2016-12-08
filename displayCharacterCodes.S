@@ -36,28 +36,28 @@
 	DISP_CHAR_B = ~(_BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_C = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
 	DISP_CHAR_D = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G) | _BV(DISP_B))
 	DISP_CHAR_F = ~(_BV(DISP_A) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_G = ~(_BV(DISP_A) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_H = ~(_BV(DISP_C) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_H = ~(_BV(DISP_F) | _BV(DISP_E) | _BV(DISP_G) | _BV(DISP_C))
 	DISP_CHAR_I = ~(_BV(DISP_B) | _BV(DISP_C))
 	DISP_CHAR_J = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F))
 	DISP_CHAR_K = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_L = ~(_BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
 	DISP_CHAR_M = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_G))
-	DISP_CHAR_N = ~( _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E))
-	DISP_CHAR_O = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
-	DISP_CHAR_P = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_Q = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_R = ~( _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_S = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_T = ~( _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_U = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
-	DISP_CHAR_V = ~( _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_W = ~( _BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_X = ~( _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_Y = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_Z = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_N = ~(_BV(DISP_C) | _BV(DISP_G) | _BV(DISP_E))
+	DISP_CHAR_O = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
+	DISP_CHAR_P = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_Q = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_R = ~(_BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_S = ~(_BV(DISP_A) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_T = ~(_BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_U = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
+	DISP_CHAR_V = ~(_BV(DISP_C) | _BV(DISP_E) | _BV(DISP_D))
+	DISP_CHAR_W = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_X = ~(_BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_Y = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_Z = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
 
 ;;; Bit Patterns for Each character to button press pattern
 	;;; Dot: Increment then logical shift right (wraparound)
@@ -66,7 +66,7 @@
 	;;one press
 
 	BIT_PATT_T = 0x00
-  BIT_PATT_E = 0x01
+	BIT_PATT_E = 0x01
 	
 	;;two press
 	BIT_PATT_M = 0x00
@@ -99,3 +99,13 @@
 	BIT_PATT_H = 0x0F
 
 	;; Five presses long
+	BIT_PATT_5 = 0x1F
+	BIT_PATT_4 = 0x1E
+	BIT_PATT_3 = 0x1C
+	BIT_PATT_2 = 0x18
+	BIT_PATT_1 = 0x10
+	BIT_PATT_6 = 0x0F
+	BIT_PATT_7 = 0x07
+	BIT_PATT_8 = 0x03
+	BIT_PATT_9 = 0x01
+	BIT_PATT_0 = 0x00
