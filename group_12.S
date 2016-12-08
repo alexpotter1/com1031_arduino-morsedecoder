@@ -1,12 +1,12 @@
-;;;  YOUR CODE SHOULD GO INTO THIS FILE.
-;;;	PLEASE ADD YOUR OWN COMMENTED HEADER
+;;; Group 12 Coursework
+;;; Alex Potter, Alfin Jose, Adrien Royer, Nick Sweeting
 
 ;;; just including the standard symbol definitions of all ports:
 #define __SFR_OFFSET 0
 #include <avr/io.h>
 
-#include "displayCharacterCodes.S"
 #include "decode.S"
+#include "displayCharacterCodes.S"
 
 
 ;;; user code starts from here, as init.S ends with jmp main:
@@ -22,6 +22,7 @@ main:
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
 	cbi DDRB, BUTTON
 	sbi PORTB, BUTTON
+	sbi DDRC, 5
 
 	;;; Set output of 7 segment
 	ldi r16, DISP_ALL
@@ -45,41 +46,94 @@ main:
 
 	; Clear timer1 overflow register, just in case
 	clr r22
+	clr r27
+	clr r28
+	clr r29
 
 	; Global Interrupt Enable
 	sei
 
 ;;; Wait for interrupts
-interrupt_loop: rjmp interrupt_loop
+interrupt_loop:
+	rjmp interrupt_loop
 
 .global timer1_compa_isr
 
 ;;; Timer1 has reached OCR1AH
 timer1_compa_isr:
+
 	push r16
 	in r16, SREG
 	push r16
-
-	lds r16, TCCR1B
-	; Are we waiting for a button release?
+	push r27
+	
+	ldi r16, TCCR1B
+	tst r29
 	sbrs r16, ICES1
-	rjmp wait_for_press
-
-	;;; Button is being held down, so set timer overflow register (r22)
-	ser r22
-
-	;;; Cleanup and end timer1_compa_isr
-	rjmp 1f
-
-wait_for_press:
+	brne checkSequence
+	; Otherwise just reset display to ready state
 	rcall ready_display
 
-1: pop r16
+	;;; Cleanup and end timer1_compa_isr
+	rjmp endOverflowInterrupt
+
+checkSequence:
+	
+	cpi r29, 0x01
+	breq onePress
+
+	cpi r29, 0x02
+	breq twoPress
+
+	cpi r29, 0x03
+	breq threePress
+
+	cpi r29, 0x04
+	breq fourPress
+
+	cpi r29, 0x05
+	breq fivePress
+	
+; checkSequence falls through to this if nothing matches
+.global checkSequenceNotMatched
+checkSequenceNotMatched:
+	rcall error_display
+	rjmp endOverflowInterruptStartNewLetter
+
+.global endOverflowInterruptStartNewLetter
+endOverflowInterruptStartNewLetter:
+
+	;;; Reset r28, r29 because we want a new letter now
+	
+	clr r28
+	clr r29
+
+;;; Fall through to this
+endOverflowInterrupt:
+	pop r27
+	pop r16
 	out SREG, r16
 	pop r16
-
+	
+	;;; Set timer overflow register (r22)
+	ser r22
 	reti
+	
+onePress:
+	jmp one_press 
+	
+twoPress:
+	jmp two_press
 
+threePress:
+	jmp three_press
+
+fourPress:
+	jmp four_press
+
+fivePress:
+	jmp five_press
+	
 .global timer1_cpt_isr
 ; Handle button input event
 timer1_cpt_isr:
@@ -96,14 +150,12 @@ timer1_cpt_isr:
 
 	push r17
 
-	mov r17, r22
+	mov r17, r23
 	or r17, r8
 
 	breq debounce
 
 	pop r17
-
-	rcall reset_timer1
 
 	; Check for rising or falling edge
 	push r17
@@ -112,6 +164,7 @@ timer1_cpt_isr:
 	sbrs r17, ICES1
 	; skip pressed if button is released
 	rjmp pressed
+	sbrc r17, ICES1
 	rcall released
 
 
@@ -123,7 +176,7 @@ pressed:
 
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
 	rcall reset_timer1
-
+	
 invertEdgeDetection:
 	sts TCCR1B, r17
 
@@ -150,47 +203,36 @@ released:
 
 	inc r29			; increment the button press counter
 
-	; Is the timer1 overflow register zero (or minus)?
-	tst r22
-	; If it isn't, it has been set, so do a long press
-	brne long_press
-
 	ldi r16, MORSE_SIGNAL_BOUNDARY ; testing whether dot or dash
 	cp r8,r16
 	brcs short_press		; if dot (short press) jump to short_press
+	brcc long_press
 
 long_press:
 
-	;; here store that the press was a dash
-	rol r28
-	inc r28
+	lsl r28
+
 	; display T for now
-	ldi r27, DISP_CHAR_T
 	; Set pins, reset the timer and return to ISR
-	rjmp 1f
+	rcall reset_timer1
+	rjmp returnFromPressed
 
 
 short_press:
-
 	;; here store that the press was a dot
-	rol r28
-	clr r27
-	; Display E for now
-	ldi r27, DISP_CHAR_E
+	lsl r28
+	inc r28
 
-1:
-	out PORTD, r27
-	ldi r27, DISP_DOT
-	out PORTC, r27
-	
+	rcall reset_timer1
+	rjmp returnFromPressed
+
+returnFromPressed:
 	pop r27
 	pop r16
 	; reset timer overflow, set timer to zero
 	clr r22
-	rcall reset_timer1
 	; Going back to ISR
 	ret
-
 
 ;;; Call this when a morse signal is received, to reset the timeout
 setup_timer1:
@@ -217,6 +259,13 @@ test_display:
 
 	pop r21
 	ret
+	
+error_display:
+	; Set top, middle and bottom segment of display to ON (segments A G D)
+	cbi PORTD, DISP_A
+	cbi PORTD, DISP_G
+	cbi PORTD, DISP_D
+	ret
 
 ready_display:
 	push r21
@@ -238,9 +287,6 @@ reset_timer1:
 	clr r17			; setting timer back to 0
 	sts TCNT1H, r17		; high bit
 	sts TCNT1L, r17		; low bit
-	clr r29			; clears the button press counters
-	clr r28
 
 	pop r17
-
 	ret

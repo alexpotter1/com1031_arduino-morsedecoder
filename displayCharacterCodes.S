@@ -36,40 +36,76 @@
 	DISP_CHAR_B = ~(_BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_C = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
 	DISP_CHAR_D = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_E = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G) | _BV(DISP_B))
 	DISP_CHAR_F = ~(_BV(DISP_A) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_G = ~(_BV(DISP_A) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_H = ~(_BV(DISP_C) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_H = ~(_BV(DISP_F) | _BV(DISP_E) | _BV(DISP_G) | _BV(DISP_C))
 	DISP_CHAR_I = ~(_BV(DISP_B) | _BV(DISP_C))
 	DISP_CHAR_J = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F))
 	DISP_CHAR_K = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
 	DISP_CHAR_L = ~(_BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
 	DISP_CHAR_M = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_G))
-	DISP_CHAR_N = ~( _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E))
-	DISP_CHAR_O = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
-	DISP_CHAR_P = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_Q = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_R = ~( _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_S = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_T = ~( _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_U = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
-	DISP_CHAR_V = ~( _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E))
-	DISP_CHAR_W = ~( _BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_X = ~( _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
-	DISP_CHAR_Y = ~( _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
-	DISP_CHAR_Z = ~( _BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_N = ~(_BV(DISP_C) | _BV(DISP_G) | _BV(DISP_E))
+	DISP_CHAR_O = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
+	DISP_CHAR_P = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_Q = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_R = ~(_BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_S = ~(_BV(DISP_A) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_T = ~(_BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_U = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F))
+	DISP_CHAR_V = ~(_BV(DISP_C) | _BV(DISP_E) | _BV(DISP_D))
+	DISP_CHAR_W = ~(_BV(DISP_A) | _BV(DISP_D) | _BV(DISP_E) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_X = ~(_BV(DISP_B) | _BV(DISP_E) | _BV(DISP_G))
+	DISP_CHAR_Y = ~(_BV(DISP_B) | _BV(DISP_C) | _BV(DISP_D) | _BV(DISP_F) | _BV(DISP_G))
+	DISP_CHAR_Z = ~(_BV(DISP_A) | _BV(DISP_B) | _BV(DISP_C) | _BV(DISP_E) | _BV(DISP_G))
 
 ;;; Bit Patterns for Each character to button press pattern
+	;;; Dot: Increment then logical shift right (wraparound)
+	;;; Dash: Increment then logical shift left (wraparound)
 
-	;; Two presses long
+	;;one press
+
+	BIT_PATT_T = 0x00
+	BIT_PATT_E = 0x01
 	
-	BIT_PATT_A = 0x1
-	BIT_PATT_N = 0x2
-	BIT_PATT_I = 0
-	BIT_PATT_M = 0x3
+	;;two press
+	BIT_PATT_M = 0x00
+	BIT_PATT_N = 0x01
+	BIT_PATT_A = 0x02
+	BIT_PATT_I = 0x03
 
 	;; Three presses long
+	BIT_PATT_O = 0x00
+	BIT_PATT_G = 0x01
+	BIT_PATT_K = 0x02
+	BIT_PATT_D = 0x03   
+	BIT_PATT_W = 0x04
+	BIT_PATT_R = 0x05
+	BIT_PATT_U = 0x06
+	BIT_PATT_S = 0x07
 
 	;; Four presses long
+	BIT_PATT_Q = 0x02
+	BIT_PATT_Z = 0x03
+	BIT_PATT_Y = 0x04
+	BIT_PATT_C = 0x05
+	BIT_PATT_X = 0x06
+	BIT_PATT_B = 0x07
+	BIT_PATT_J = 0x08
+	BIT_PATT_P = 0x09
+	BIT_PATT_L = 0x0B
+	BIT_PATT_F = 0x0D
+	BIT_PATT_V = 0x0E	
+	BIT_PATT_H = 0x0F
 
 	;; Five presses long
+	BIT_PATT_5 = 0x1F
+	BIT_PATT_4 = 0x1E
+	BIT_PATT_3 = 0x1C
+	BIT_PATT_2 = 0x18
+	BIT_PATT_1 = 0x10
+	BIT_PATT_6 = 0x0F
+	BIT_PATT_7 = 0x07
+	BIT_PATT_8 = 0x03
+	BIT_PATT_9 = 0x01
+	BIT_PATT_0 = 0x00
