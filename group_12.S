@@ -1,3 +1,4 @@
+
 ;;; Group 12 Coursework
 ;;; Alex Potter, Alfin Jose, Adrien Royer, Nick Sweeting
 
@@ -16,7 +17,7 @@ BUTTON = 0		; Button on Arduino pin 8 (PORTB pin 0)
 .global main 		; declaring main global, so it can be used in other files
 
 main:
-
+	;;; Runs a function to test all lights in the 7-segment are working 
 	call test_display
 
 	;;; Switch on button as input (not pressed = 1, pressed = 0)
@@ -78,6 +79,7 @@ timer1_compa_isr:
 	rjmp endOverflowInterrupt
 
 checkSequence:
+;;; Check the amount of presses stored in r29 and branch to appropriate function
 	
 	cpi r29, 0x01
 	breq onePress
@@ -118,7 +120,9 @@ endOverflowInterrupt:
 	;;; Set timer overflow register (r22)
 	ser r22
 	reti
-	
+
+;;; Functions branched to depending on the button press count in a single letter.
+;;; Each jumps to a function in decode.S to reduce the amount of code in group12.S.
 onePress:
 	jmp one_press 
 	
@@ -173,7 +177,8 @@ timer1_cpt_isr:
 	rjmp invertEdgeDetection
 
 pressed:
-
+;;; occurrs when the button is first depressed (falling edge)
+	
 	ori r17, _BV(ICES1)	; expects next button change to be rising edge
 	rcall reset_timer1
 	
@@ -197,7 +202,8 @@ debounce:
 	reti
 
 released:
-
+;;; occurs when the button is released (rising edge)
+	
 	push r16
 	push r27
 
@@ -209,7 +215,8 @@ released:
 	brcc long_press
 
 long_press:
-
+;;; loads r28 with a dash (0) when button is depressed for more than 200ms
+	
 	lsl r28
 
 	; display T for now
@@ -219,6 +226,7 @@ long_press:
 
 
 short_press:
+;;; loads r28 with a dot (1) when button is depressed for less than 200ms
 	;; here store that the press was a dot
 	lsl r28
 	inc r28
@@ -250,6 +258,8 @@ setup_timer1:
 	ret
 
 test_display:
+;;; Tests the display by turning on all segments
+	
 	push r21
 
 	ldi r21, ~(DISP_ALL)
@@ -261,6 +271,9 @@ test_display:
 	ret
 	
 error_display:
+;;; Occurrs when there is a wrong sequence of dots or dashes, or when there are
+;;; too many presses in one letter
+	
 	; Set top, middle and bottom segment of display to ON (segments A G D)
 	cbi PORTD, DISP_A
 	cbi PORTD, DISP_G
@@ -268,6 +281,9 @@ error_display:
 	ret
 
 ready_display:
+;;; readies the display by turning off all segements and showing DP2 to indicate
+;;; that the display is still working
+	
 	push r21
 
 	;;; Inverse logic
@@ -281,6 +297,7 @@ ready_display:
 	ret
 
 reset_timer1:
+;;; resets the overflow timer
 
 	push r17
 
